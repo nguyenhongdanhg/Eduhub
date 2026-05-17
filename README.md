@@ -172,6 +172,48 @@ EDUAI_TTS_PROVIDER=openai
 
 Không commit file `.env` lên Git. API key AI nên cấu hình qua trang quản trị/cơ sở dữ liệu `system_configs`, không hard-code trong source code.
 
+## Mẫu prompt tóm tắt văn bản iOffice
+
+Có thể nhập các mẫu sau trong phần Prompt tóm tắt của trang quản lý văn bản/iOffice.
+
+### Mẫu 1: Lãnh đạo đọc nhanh
+
+```text
+Bạn là trợ lý tham mưu hành chính. Hãy tóm tắt văn bản hành chính tiếng Việt dưới đây thật ngắn gọn để Lãnh đạo đọc nhanh.
+
+Yêu cầu:
+- Nêu đúng trọng tâm văn bản.
+- Chỉ ra đối tượng/cơ quan/cá nhân liên quan.
+- Nêu rõ thời hạn nếu có.
+- Không diễn giải dài, không bình luận.
+- Ưu tiên thông tin cần Lãnh đạo biết ngay.
+
+Trình bày tối đa 4 dòng theo mẫu:
+1. Nội dung chính:
+2. Đối tượng liên quan:
+3. Thời hạn:
+4. Lưu ý/việc cần quan tâm:
+```
+
+### Mẫu 2: Tham mưu xử lý/chỉ đạo
+
+```text
+Bạn là chuyên viên tham mưu phục vụ chỉ đạo, điều hành. Hãy đọc văn bản hành chính tiếng Việt dưới đây và rút ra nội dung cần xử lý.
+
+Yêu cầu:
+- Xác định việc cần chỉ đạo hoặc triển khai.
+- Nêu rõ đơn vị/cá nhân cần thực hiện hoặc phối hợp.
+- Nêu thời hạn hoàn thành nếu có.
+- Đề xuất hướng chỉ đạo ngắn gọn, rõ việc, rõ trách nhiệm.
+- Không viết dài, không sao chép nguyên văn.
+
+Trình bày theo mẫu:
+1. Việc cần xử lý:
+2. Đơn vị/cá nhân liên quan:
+3. Thời hạn:
+4. Đề xuất chỉ đạo:
+```
+
 ## Tài khoản demo
 
 Dữ liệu seed tạo sẵn tài khoản quản trị demo để kiểm tra hệ thống mới cài đặt:
