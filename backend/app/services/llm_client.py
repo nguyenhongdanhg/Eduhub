@@ -496,7 +496,8 @@ def generate_text(
   api_key: str | None = None,
   content_type: str = "generate"
 ) -> tuple[str, str]:
-  provider = _resolve_provider_for_call(resolve_generate_provider(provider))
+  configured_provider = resolve_generate_provider(provider)
+  provider = _resolve_provider_for_call(configured_provider)
   user_text2 = (user_text or "").strip()
   if not user_text2:
     raise ValueError("empty_text")
@@ -511,9 +512,12 @@ def generate_text(
     max_input_chars = _read_optional_int_env("EDUAI_LLM_MAX_INPUT_CHARS", 20000)
   user_text2 = _trim_by_chars(user_text2, max_input_chars)
 
+  if provider == "fallback":
+    raise RuntimeError("Chưa cấu hình AI để sinh văn bản. Vào Cấu hình AI, thêm API key/provider/model hoặc chọn provider tạo nội dung hợp lệ.")
+
   if provider in ("openai", "openai_compatible"):
     base_url = (_get_db_config("AI_OPENAI_BASE_URL") or "https://api.openai.com/v1").strip()
-    default_model = (_get_db_config("AI_OPENAI_MODEL") or "gpt-4o-mini").strip()
+    default_model = (_get_db_config("AI_GENERATE_MODEL") or _get_db_config("AI_OPENAI_MODEL") or "gpt-4o-mini").strip()
     model_list = _parse_model_list(model, default_model)
     
     ring = get_ring("AI_OPENAI_API_KEY")
@@ -550,7 +554,7 @@ def generate_text(
 
   if provider == "deepseek":
     base_url = (_get_db_config("AI_DEEPSEEK_BASE_URL") or "https://api.deepseek.com/v1").strip()
-    default_model = (_get_db_config("AI_DEEPSEEK_MODEL") or "deepseek-chat").strip()
+    default_model = (_get_db_config("AI_GENERATE_MODEL") or _get_db_config("AI_DEEPSEEK_MODEL") or "deepseek-chat").strip()
     model_list = _parse_model_list(model, default_model)
 
     ring = get_ring("AI_DEEPSEEK_API_KEY")
@@ -584,30 +588,11 @@ def generate_text(
                 break
             continue
             
-      # Fallback logic for generate_text (similar to summarize_text)
-      if _ == max(1, len(keys)) - 1 and not api_key:
-             try:
-                 # Check if the error is "Model Not Exist"
-                 is_model_error = False
-                 if last_err and "Model Not Exist" in str(last_err):
-                     is_model_error = True
-                     
-                 # If it's a model error, we might want to try removing the specific model and use default
-                 if is_model_error and model:
-                     print(f"DeepSeek model '{model}' not found in generate_text, trying default model...")
-                     return generate_text(user_text, system_prompt=system_prompt, model=None, provider=provider, api_key=None, content_type=content_type)
-
-                 print(f"DeepSeek exhausted in generate_text, failing over...")
-                 fallback_provider = _auto_pick_provider()
-                 if fallback_provider != "deepseek" and fallback_provider != "fallback":
-                     return generate_text(user_text, system_prompt=system_prompt, model=None, provider=fallback_provider, api_key=None, content_type=content_type)
-             except Exception:
-                 pass
     raise last_err or RuntimeError("missing_deepseek_api_key")
 
   if provider == "gemini":
     base_url = (_get_db_config("AI_GEMINI_BASE_URL") or "https://generativelanguage.googleapis.com/v1beta").strip()
-    default_model = (_get_db_config("AI_GEMINI_MODEL") or "gemini-1.5-flash").strip()
+    default_model = (_get_db_config("AI_GENERATE_MODEL") or _get_db_config("AI_GEMINI_MODEL") or "gemini-1.5-flash").strip()
     model_list = _parse_model_list(model, default_model)
     
     ring = get_ring("AI_GEMINI_API_KEY")

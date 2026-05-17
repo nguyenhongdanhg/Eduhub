@@ -255,6 +255,14 @@ function resolveDownloadHref(d) {
   return `${API_BASE}/ioffice/download-file/${encodeURIComponent(fp)}`;
 }
 
+function principalAssistantUrl(docId) {
+  const did = String(docId || "").trim();
+  const params = new URLSearchParams();
+  if (did) params.set("doc_id", did);
+  params.set("intent", "draft_document");
+  return `/views/management/ai-assistant/index.html?${params.toString()}`;
+}
+
 function summaryBadge(status) {
   const s = String(status || "").trim().toUpperCase();
   if (!s) return `<span class="badge text-bg-secondary">—</span>`;
@@ -335,6 +343,7 @@ function renderRow(d, idx, globalOffset) {
                 <a href="#" class="text-decoration-none" data-ioffice-action="summary-more" data-doc-id="${escapeHtml(docId)}">Xem thêm</a>
                 ${hasZip ? ` | <a href="#" class="text-decoration-none" data-ioffice-action="summary-rerun" data-doc-id="${escapeHtml(docId)}">Tóm tắt lại</a>` : ""}
                 | <a href="#" class="text-decoration-none" data-ioffice-action="summary-audio" data-doc-id="${escapeHtml(docId)}" title="Nghe tóm tắt"><i class="bi bi-headphones"></i></a>
+                | <a href="${escapeHtml(principalAssistantUrl(docId))}" class="text-decoration-none" title="Chuyển sang Trợ lý Hiệu trưởng để tạo văn bản"><i class="bi bi-magic"></i></a>
               </div>
               <div class="summary-audio small mt-1" data-ioffice="summary-audio" data-doc-id="${escapeHtml(docId)}" style="text-align:center"></div>
               ${sumStatus === "FAILED" && d?.ai_error ? `<div class="small text-danger mt-1">${escapeHtml(truncateSmart(String(d.ai_error), 120, 25))}</div>` : ""}
@@ -352,6 +361,7 @@ function renderRow(d, idx, globalOffset) {
         <div class="btn-group btn-group-sm" role="group">
           <a class="btn btn-outline-secondary" href="${escapeHtml(String(d?.link_goc || "#"))}" target="_blank" title="Xem gốc"><i class="bi bi-box-arrow-up-right"></i></a>
           ${dl ? `<a class="btn btn-outline-secondary" href="${escapeHtml(dl)}" target="_blank" title="Tải tệp"><i class="bi bi-download"></i></a>` : ""}
+          <a class="btn btn-outline-primary" href="${escapeHtml(principalAssistantUrl(docId))}" title="Trợ lý Hiệu trưởng"><i class="bi bi-magic"></i></a>
           <button class="btn btn-outline-danger" type="button" data-ioffice-action="delete" data-doc-id="${escapeHtml(String(d?.doc_id || ""))}" title="Xóa"><i class="bi bi-trash"></i></button>
         </div>
       </td>

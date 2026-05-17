@@ -52,6 +52,11 @@ function saveWorkspaceCache(obj) {
   } catch (_) {}
 }
 
+function buildAssistantUrl(params) {
+  const qs0 = new URLSearchParams(params || {});
+  return `/views/management/ai-assistant/index.html?${qs0.toString()}`;
+}
+
 let workspaceId = "";
 
 async function apiFetch(path, options = {}) {
@@ -904,6 +909,68 @@ function docListHtml(docs) {
 
 function getCheckedDocIds() {
   return qsa('[data-ai="doc-check"]').filter((x) => x.checked).map((x) => String(x.value || "").trim()).filter(Boolean);
+}
+
+async function loadIofficeDocSnapshot(docId) {
+  const did = String(docId || "").trim();
+  if (!did) return null;
+  const res = await apiFetch(`/ioffice/ui/document/${encodeURIComponent(did)}`, { method: "GET" });
+  const it = res?.item && typeof res.item === "object" ? res.item : {};
+  if (!it?.doc_id) return null;
+  return {
+    doc_id: String(it.doc_id || did),
+    so_ky_hieu: String(it.so_ky_hieu || ""),
+    trich_yeu: String(it.trich_yeu || ""),
+    link_goc: String(it.link_goc || ""),
+    duong_dan_file: String(it.duong_dan_file || ""),
+    file_name: String(it.ten_file || ""),
+  };
+}
+
+async function applyDeepLinkContext() {
+  const params = new URLSearchParams(window.location.search || "");
+  const docIds = params.getAll("doc_id").map((x) => String(x || "").trim()).filter(Boolean);
+  if (!docIds.length) return;
+  const unique = Array.from(new Set(docIds));
+  const snapshots = [];
+  for (const did of unique) {
+    try {
+      const snap = await loadIofficeDocSnapshot(did);
+      if (snap) snapshots.push(snap);
+    } catch (_) {}
+  }
+  if (!snapshots.length) return;
+  currentDecisionId = 0;
+  currentDecisionMeta = {};
+  currentDocsSnapshot = snapshots;
+  currentCitations = {};
+  currentPodcast = "";
+  pendingQuestions = [];
+  reasoningTurns = [];
+  const listEl = qs('[data-ai="doc-list"]');
+  if (listEl) listEl.innerHTML = docListHtml(currentDocsSnapshot);
+  const titleEl = qs('[data-ai="title"]');
+  const first = snapshots[0] || {};
+  if (titleEl && !String(titleEl.value || "").trim()) {
+    titleEl.value = `Tạo văn bản từ ${first.so_ky_hieu || first.doc_id || "văn bản iOffice"}`;
+  }
+  const reqEl = qs('[data-ai="request"]');
+  if (reqEl && !String(reqEl.value || "").trim()) {
+    reqEl.value = "Dựa trên văn bản đã chọn, hãy soạn dự thảo văn bản hành chính mới theo yêu cầu chỉ đạo/triển khai. Nội dung cần rõ căn cứ, nội dung yêu cầu, đơn vị thực hiện, thời hạn và phần kết phù hợp thể thức hành chính.";
+  }
+  const modeEl = qs('[data-ai="mode"]');
+  if (modeEl) setModeUi("custom");
+  const customEl = qs('[data-ai="custom"]');
+  if (customEl && !String(customEl.value || "").trim()) {
+    customEl.value = "Bạn là chuyên viên tham mưu cho Hiệu trưởng. Hãy sử dụng văn bản iOffice được chọn làm căn cứ để soạn nội dung văn bản mới. Không sao chép máy móc; diễn đạt chuẩn văn bản hành chính tiếng Việt, rõ việc, rõ trách nhiệm, rõ thời hạn nếu có.";
+  }
+  const ragEl = qs('[data-ai="use-rag"]');
+  if (ragEl) ragEl.checked = true;
+  const outEl = qs('[data-ai="output"]');
+  if (outEl) outEl.textContent = "Đã nạp văn bản từ danh sách. Hãy chỉnh yêu cầu rồi bấm Chạy trợ lý để tạo văn bản.";
+  setButtonsEnabled(true);
+  setLayout("request_full");
+  saveWorkspaceCache(snapshotWorkspaceState());
 }
 
 function setModeUi(mode) {
@@ -2448,6 +2515,7 @@ export async function initAiAssistantPage() {
   await loadLlmChoices();
   setModeUi("preset");
   restoreWorkspaceCache(cached);
+  await applyDeepLinkContext();
   bindEvents();
   initHelpPopovers();
   await refreshHistory();

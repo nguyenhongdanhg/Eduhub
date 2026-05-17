@@ -1283,6 +1283,30 @@ async def stream_principal_decision_run(
   meta = _parse_json(row.get("rag_query"))
   if not isinstance(meta, dict):
     meta = {}
+  st = _RUNS.get(rid)
+  if st:
+    q: asyncio.Queue = asyncio.Queue()
+    st.get("queues").add(q)
+    async def _live_stream():
+      import json as _json
+      def _sse(event: str, data_obj) -> bytes:
+        data_str = _json.dumps(data_obj, ensure_ascii=False)
+        return f"event: {event}\ndata: {data_str}\n\n".encode("utf-8")
+      try:
+        while True:
+          msg = await q.get()
+          event = str((msg or {}).get("event") or "message")
+          data = (msg or {}).get("data")
+          yield _sse(event, data)
+          if event in ("final", "need_input", "error"):
+            return
+      finally:
+        try:
+          st.get("queues").discard(q)
+        except Exception:
+          pass
+    return StreamingResponse(_live_stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
   evs = meta.get("run_events")
   if not isinstance(evs, list):
     evs = []
