@@ -255,6 +255,7 @@ def list_principal_decisions(
   return {"ok": True, "items": items}
 
 
+@router.get("/principal/export-docx/{decision_id}")
 @router.get("/principal/decisions/{decision_id}/export-docx")
 def export_principal_decision_docx_api(
   decision_id: int,

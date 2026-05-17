@@ -601,7 +601,7 @@ function exportCurrentDecisionDocx() {
     return;
   }
   scheduleAutosaveDraft();
-  const url = `${API_BASE}/ai/principal/decisions/${encodeURIComponent(String(currentDecisionId))}/export-docx?t=${Date.now()}`;
+  const url = `${API_BASE}/ai/principal/export-docx/${encodeURIComponent(String(currentDecisionId))}?t=${Date.now()}`;
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
