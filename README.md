@@ -111,6 +111,14 @@ Sau khi chạy xong, mở:
 http://127.0.0.1:3000/
 ```
 
+Tài khoản demo được tạo sẵn khi import `database/seed.sql`:
+
+```text
+Email: admin@eduai.local
+Mật khẩu: Demo@123456
+Vai trò: Quản trị hệ thống
+```
+
 Hoặc mở trực tiếp dashboard:
 
 ```text
@@ -163,6 +171,19 @@ EDUAI_TTS_PROVIDER=openai
 ```
 
 Không commit file `.env` lên Git. API key AI nên cấu hình qua trang quản trị/cơ sở dữ liệu `system_configs`, không hard-code trong source code.
+
+## Tài khoản demo
+
+Dữ liệu seed tạo sẵn tài khoản quản trị demo để kiểm tra hệ thống mới cài đặt:
+
+```text
+Email: admin@eduai.local
+Mật khẩu: Demo@123456
+Vai trò: Quản trị hệ thống
+Trường: Trường Demo EduAI
+```
+
+Tài khoản này chỉ dùng cho môi trường demo/nội bộ. Khi triển khai thật, hãy đổi mật khẩu hoặc xóa tài khoản demo khỏi dữ liệu production.
 
 ## Chạy thủ công
 

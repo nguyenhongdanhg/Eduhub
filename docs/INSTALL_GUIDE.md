@@ -127,6 +127,16 @@ mysql -h 127.0.0.1 -P 3307 -u root -proot -e "CREATE DATABASE IF NOT EXISTS edua
 
 Sau đó chạy lại hai lệnh import ở trên.
 
+Sau khi import `database/seed.sql`, hệ thống có sẵn tài khoản demo:
+
+```text
+Email: admin@eduai.local
+Mật khẩu: Demo@123456
+Vai trò: Quản trị hệ thống
+```
+
+Tài khoản này chỉ dùng cho môi trường demo/nội bộ. Khi triển khai thật, hãy đổi mật khẩu hoặc xóa tài khoản demo khỏi dữ liệu production.
+
 ## 6. Cài backend
 
 Tạo virtual environment tại thư mục gốc:
