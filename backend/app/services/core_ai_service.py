@@ -379,9 +379,11 @@ class CoreAIService:
     def _get_system_prompt(self, preset_id: Optional[str], custom_prompt: Optional[str]) -> str:
         if custom_prompt:
             return custom_prompt
-        from app.services.ioffice_prompt_store import list_prompt_presets
-        presets = {str(p.get("id")): str(p.get("prompt") or "") for p in (list_prompt_presets() or []) if isinstance(p, dict) and p.get("id")}
-        return presets.get(preset_id) or "Bạn là trợ lý AI thông minh hỗ trợ quản lý văn administrative và giáo dục."
+        from app.services.principal_document_presets import get_principal_document_prompt
+        fixed_prompt = get_principal_document_prompt(preset_id)
+        if fixed_prompt:
+            return fixed_prompt
+        return "Bạn là trợ lý AI thông minh hỗ trợ quản lý văn bản hành chính và giáo dục."
 
     def _build_context_string(self, docs: List[Dict], works: List[Dict], rag_content: str, selected_sources: List[Dict[str, Any]] | None = None, full_doc_texts: Dict[str, str] | None = None) -> str:
         parts = []

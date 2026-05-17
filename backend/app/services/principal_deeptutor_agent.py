@@ -122,6 +122,22 @@ def _build_ideagen_prompt(user_request: str, context: str) -> tuple[str, str]:
   return user_prompt, system_prompt
 
 
+def _build_admin_writing_policy() -> str:
+  return (
+    "\n\nQUY CHUẨN SINH VĂN BẢN HÀNH CHÍNH:\n"
+    "- Vai trò: chuyên viên tham mưu cho Hiệu trưởng, viết để lãnh đạo có thể dùng/chỉnh sửa ngay.\n"
+    "- Đầu ra phải là văn bản/ý kiến chỉ đạo hoàn chỉnh theo đúng yêu cầu người dùng, không chỉ là phân tích.\n"
+    "- Ưu tiên rõ việc, rõ đơn vị/cá nhân thực hiện, rõ thời hạn, rõ sản phẩm đầu ra.\n"
+    "- Không hỏi lại nếu có thể suy luận hợp lý từ văn bản nguồn; thông tin chưa rõ thì ghi [cần bổ sung: ...] trong đúng vị trí cần điền.\n"
+    "- Không bịa số văn bản, ngày tháng, tên đơn vị, căn cứ pháp lý nếu ngữ cảnh không có; dùng [số], [ngày], [đơn vị] khi thiếu.\n"
+    "- Diễn đạt chuẩn mực, ngắn gọn, đúng văn phong hành chính tiếng Việt; tránh lời giải thích ngoài văn bản.\n"
+    "- Nếu người dùng yêu cầu công văn/thông báo/kế hoạch/tờ trình, hãy trình bày đúng cấu trúc phù hợp thể loại đó.\n"
+    "- Nếu chỉ yêu cầu ý kiến tham mưu/chỉ đạo, trình bày thành các mục: Nội dung xử lý; Giao nhiệm vụ; Thời hạn; Lưu ý.\n"
+    "- Khi dùng căn cứ từ trích dẫn, đặt mã [[CIT-XX]] ngay sau câu liên quan.\n"
+    "- Cuối văn bản thêm mục 'Rà soát trước khi ban hành' gồm tối đa 4 gạch đầu dòng nêu chỗ cần kiểm tra/bổ sung."
+  )
+
+
 def _build_podcast_prompt(final_text: str) -> tuple[str, str]:
   system_prompt = (
     "Bạn là biên tập viên podcast tiếng Việt.\n"
@@ -186,44 +202,35 @@ def _extract_questions(ideagen_out: str) -> list[str]:
     return []
   out: list[str] = []
   import re
-  # Regex to strip list markers: "1.", "1)", "-", "*", "•", "1.1."
-  # Matches start of line, optional whitespace, digits/letters, dot/paren, whitespace
   marker_pattern = re.compile(r"^(\d+[\.\)]|\-|\*|•|[a-z][\.\)])\s*", re.IGNORECASE)
+  md_pattern = re.compile(r"[\*_`>#\[\]\(\)]")
+  none_phrases = {
+    "không có", "khong co", "không", "khong", "none", "không có câu hỏi", "khong co cau hoi", "không cần",
+    "khong can", "không có thông tin thiếu", "khong co thong tin thieu", "đủ thông tin", "du thong tin",
+    "đã đủ thông tin", "da du thong tin", "không có câu hỏi làm rõ", "khong co cau hoi lam ro",
+  }
 
   for ln in lines[idx + 1 :]:
     if not ln:
       continue
-    
-    # Stop if we hit a new major section header (e.g. "4)")
-    # But allow "1)" if it's inside the questions list (assuming questions are numbered)
-    # The prompt asks for sections 1), 2), 3). 
-    # If we see "1)" or "2)" again, it might be a hallucination or restart, but valid questions could start with "1)".
-    # However, to be safe against restarting sections, we typically assume questions are the last section.
-    # Let's rely on the marker stripping instead.
-    
-    # Strip marker
     ln_clean = marker_pattern.sub("", ln).strip()
-    
-    if not ln_clean:
+    ln_plain = md_pattern.sub("", ln_clean).strip().lower().rstrip(".,;:! ")
+    ln_plain = re.sub(r"\s+", " ", ln_plain)
+    if not ln_plain:
       continue
-      
-    low = ln_clean.lower().rstrip(".,;:")
-    
-    # Robust check for "None"
-    none_phrases = [
-        "không có", "không", "none", "không có câu hỏi", "không cần", 
-        "không có thông tin thiếu", "đủ thông tin", "đã đủ thông tin", "không có câu hỏi làm rõ"
-    ]
-    
-    is_none = False
-    if low in none_phrases:
-        is_none = True
-    elif low.startswith("không có") and len(low) < 20: # "Không có gì thêm"
-        is_none = True
-        
-    if not is_none:
-      out.append(ln_clean)
-      
+    if ln_plain in none_phrases:
+      return []
+    if ln_plain.startswith("không có") or ln_plain.startswith("khong co"):
+      return []
+    if ln_plain.startswith("không cần") or ln_plain.startswith("khong can"):
+      return []
+    if "không có" in ln_plain and len(ln_plain) <= 80:
+      return []
+    if "khong co" in ln_plain and len(ln_plain) <= 80:
+      return []
+    if not ln_clean.endswith("?") and len(ln_plain.split()) <= 4:
+      continue
+    out.append(ln_clean)
     if len(out) >= 5:
       break
   return out
@@ -699,11 +706,12 @@ async def generate_principal_content_deeptutor(
   thinking.append("Tổng hợp: soạn thảo nội dung có trích dẫn.")
   await _emit(progress_callback, "Tổng hợp", "Đang soạn thảo nội dung…")
   system_prompt = core_ai._get_system_prompt(preset_id, custom_prompt)
+  system_prompt += _build_admin_writing_policy()
   system_prompt += (
     "\n\nQUY ĐỊNH TRÍCH DẪN:\n"
     "- Khi sử dụng thông tin từ phần TRÍCH DẪN hoặc NGUỒN WEB, bắt buộc chèn đúng mã [[CIT-XX]] tương ứng ngay sau câu.\n"
     "- Chỉ dùng mã trích dẫn đã xuất hiện.\n"
-    "- Nếu không có căn cứ trong trích dẫn/nguồn web, hãy nói rõ “không có căn cứ”."
+    "- Nếu không có căn cứ trong trích dẫn/nguồn web, hãy ghi [cần kiểm chứng] thay vì khẳng định."
   )
 
   full_context = core_ai._build_context_string(docs_data, works_data, rag_content=rag_context, selected_sources=final_sources_for_generation, full_doc_texts=full_doc_texts)

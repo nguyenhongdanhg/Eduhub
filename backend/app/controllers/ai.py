@@ -173,6 +173,12 @@ class PrincipalDecisionDraftBody(BaseModel):
   uploaded_rag_documents: list[dict] | None = None
 
 
+@router.get("/principal/document-presets")
+def list_principal_document_presets_api():
+  from app.services.principal_document_presets import list_principal_document_presets
+  return {"ok": True, "presets": list_principal_document_presets()}
+
+
 @router.get("/principal/decisions")
 def list_principal_decisions(
   limit: int | None = None,

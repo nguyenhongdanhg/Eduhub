@@ -864,11 +864,11 @@ async function loadPromptPresets() {
   const sel = qs('[data-ai="preset"]');
   if (!sel) return;
   try {
-    const res = await apiFetch("/ioffice/ui/summary_prompts", { method: "GET" });
+    const res = await apiFetch("/ai/principal/document-presets", { method: "GET" });
     const presets = Array.isArray(res?.presets) ? res.presets : [];
-    sel.innerHTML = `<option value="">—</option>` + presets.map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.label)}</option>`).join("");
+    sel.innerHTML = `<option value="">Tự động</option>` + presets.map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.label)}</option>`).join("");
   } catch (_) {
-    sel.innerHTML = `<option value="">—</option>`;
+    sel.innerHTML = `<option value="">Tự động</option>`;
   }
 }
 
@@ -956,7 +956,7 @@ async function applyDeepLinkContext() {
   }
   const reqEl = qs('[data-ai="request"]');
   if (reqEl && !String(reqEl.value || "").trim()) {
-    reqEl.value = "Dựa trên văn bản đã chọn, hãy soạn dự thảo văn bản hành chính mới theo yêu cầu chỉ đạo/triển khai. Nội dung cần rõ căn cứ, nội dung yêu cầu, đơn vị thực hiện, thời hạn và phần kết phù hợp thể thức hành chính.";
+    reqEl.value = "Dựa trên văn bản đã chọn, hãy soạn dự thảo văn bản hành chính mới theo mẫu đang chọn. Nội dung cần rõ căn cứ, nội dung yêu cầu, đơn vị thực hiện, thời hạn, nơi nhận và phần ký phù hợp thể thức hành chính.";
   }
   const modeEl = qs('[data-ai="mode"]');
   if (modeEl) setModeUi("custom");
