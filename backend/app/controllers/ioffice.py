@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from app.services.ioffice_sync import ioffice_sync_service
 from app.services.ioffice_summary import summarize_document
+from app.services.llm_client import validate_summary_model
 from app.services.document_categories_repo import DocumentCategoriesRepo
 from app.services.audit_repo import AuditRepo
 from utils import FILES_ROOT, ensure_dir, make_safe_relative_from_any
@@ -1575,10 +1576,11 @@ def ui_ai_summary(payload: UiAiSummaryBody):
       if not doc:
         return
       try:
+        model_plan = validate_summary_model(model=(payload.model or None), prompt_mode=(payload.prompt_mode or None), content_type="ioffice_summary")
         _, content_hash = prepare_summary_input(
           doc,
           selected_members=payload.selected_members,
-          model=(payload.model or None),
+          model=str(model_plan.get("model") or payload.model or ""),
           prompt_mode=(payload.prompt_mode or None),
         )
         with get_db_connection() as conn:
@@ -1587,7 +1589,7 @@ def ui_ai_summary(payload: UiAiSummaryBody):
         summary, model_used, content_hash = summarize_document(
           doc,
           selected_members=payload.selected_members,
-          model=(payload.model or None),
+          model=str(model_plan.get("model") or payload.model or ""),
           prompt_mode=(payload.prompt_mode or None),
         )
         with get_db_connection() as conn:

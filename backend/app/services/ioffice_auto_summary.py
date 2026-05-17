@@ -55,6 +55,7 @@ class IOfficeAutoSummaryWorker:
     from app.db import get_db_connection
     from app.services.ioffice_summary import summarize_document
     from app.services.ioffice_summary import prepare_summary_input
+    from app.services.llm_client import validate_summary_model
 
     interval_sec = max(10, _env_int("EDUAI_IOFFICE_AUTO_SUMMARY_INTERVAL_SEC", 60))
     batch = max(1, min(50, _env_int("EDUAI_IOFFICE_AUTO_SUMMARY_BATCH", 5)))
@@ -99,13 +100,29 @@ class IOfficeAutoSummaryWorker:
             )
             candidates = list(cur.fetchall() or [])
 
+        try:
+          model_plan = validate_summary_model(model=model, prompt_mode=prompt_mode, content_type="ioffice_summary")
+          checked_model = str(model_plan.get("model") or model or "").strip() or None
+        except Exception as e:
+          message = f"Chưa chạy tóm tắt tự động vì cấu hình AI/model chưa hợp lệ: {e}"
+          with get_db_connection() as conn:
+            with conn.cursor() as cur:
+              cur.execute(
+                "UPDATE ioffice_documents SET summary_status='FAILED', summary_error=%s, summary_updated_at=UTC_TIMESTAMP() WHERE fetch_status='OK' AND (summary_text IS NULL OR summary_text='' OR summary_status IN ('PENDING','FAILED')) LIMIT %s",
+                (message, int(batch)),
+              )
+          with self._lock:
+            self._last_error = message
+          time.sleep(interval_sec)
+          continue
+
         for doc in candidates:
           try:
             doc_id = int(doc.get("id") or 0)
             if not doc_id:
               continue
-            _, content_hash = prepare_summary_input(doc, model=model, prompt_mode=prompt_mode)
-            if doc.get("content_hash") and doc.get("content_hash") == content_hash and (doc.get("summary_text") or "").strip():
+            _, content_hash = prepare_summary_input(doc, model=checked_model, prompt_mode=prompt_mode)
+            if doc.get("content_hash") and doc.get("content_hash") == content_hash and (doc.get("summary_text") or "").strip() and str(doc.get("summary_model") or "").strip() == str(checked_model or "").strip():
               with get_db_connection() as conn:
                 with conn.cursor() as cur:
                   cur.execute(
@@ -123,7 +140,7 @@ class IOfficeAutoSummaryWorker:
                   "UPDATE ioffice_documents SET summary_status='PROCESSING', summary_updated_at=UTC_TIMESTAMP() WHERE id=%s",
                   (doc_id,),
                 )
-            summary, model_used, content_hash = summarize_document(doc, model=model, prompt_mode=prompt_mode)
+            summary, model_used, content_hash = summarize_document(doc, model=checked_model, prompt_mode=prompt_mode)
             with get_db_connection() as conn:
               with conn.cursor() as cur:
                 cur.execute(

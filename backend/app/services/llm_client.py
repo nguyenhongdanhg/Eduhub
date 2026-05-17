@@ -6,6 +6,7 @@ import threading
 import urllib.error
 import urllib.parse
 import urllib.request
+from dataclasses import dataclass
 from typing import Optional, Tuple, List, Dict, Any
 
 from app.services.local_config import load_local_config
@@ -231,13 +232,63 @@ def _trim_by_chars(text: str, max_chars: int | None) -> str:
 def _parse_model_list(raw: str | None, default: str) -> List[str]:
     s = (raw or "").strip() or default
     parts = [m.strip() for m in s.split(",") if m.strip()]
-    
-    # Always ensure default model is in fallback list (at the end) if not present
-    # This prevents "Model Not Exist" error if user specified a model that doesn't exist on this provider
-    if default and default not in parts:
-        parts.append(default)
-        
     return parts if parts else [default]
+
+
+@dataclass(frozen=True)
+class SummaryModelPlan:
+  provider: str
+  model: str
+  api_key: str
+  base_url: str
+  prompt: str
+  max_tokens: int | None
+
+
+def _friendly_provider_name(provider: str) -> str:
+  p = (provider or "").strip().lower()
+  if p in ("openai", "openai_compatible"):
+    return "OpenAI-compatible"
+  if p == "deepseek":
+    return "DeepSeek"
+  if p == "gemini":
+    return "Gemini"
+  return p or "AI"
+
+
+def _build_summary_plan(*, model: str | None = None, prompt_mode: str | None = None, provider: str | None = None, api_key: str | None = None, content_type: str = "summary") -> SummaryModelPlan:
+  resolved_provider = _resolve_provider_for_call(resolve_summary_provider(provider))
+  prompt = _pick_prompt(prompt_mode)
+  max_tokens = _read_int_env("EDUAI_IOFFICE_SUMMARY_MAX_TOKENS", 1600) if str(content_type or "").strip().lower() == "ioffice_summary" else _read_int_env("EDUAI_SUMMARY_MAX_TOKENS", 1024)
+  if resolved_provider == "fallback":
+    raise RuntimeError("Chưa cấu hình AI để tóm tắt. Vào Cấu hình AI, thêm API key OpenAI/Gemini/DeepSeek và chọn provider/model tóm tắt.")
+  if resolved_provider in ("openai", "openai_compatible"):
+    base_url = (_get_db_config("AI_OPENAI_BASE_URL") or "https://api.openai.com/v1").strip()
+    selected_model = (model or _get_db_config("AI_OPENAI_MODEL") or "gpt-4o-mini").strip()
+    key = str(api_key or get_ring("AI_OPENAI_API_KEY").pick() or "").strip()
+    if not key:
+      raise RuntimeError("Thiếu API key OpenAI-compatible trong Cấu hình AI.")
+    return SummaryModelPlan(provider="openai_compatible", model=selected_model, api_key=key, base_url=base_url, prompt=prompt, max_tokens=max_tokens)
+  if resolved_provider == "deepseek":
+    base_url = (_get_db_config("AI_DEEPSEEK_BASE_URL") or "https://api.deepseek.com/v1").strip()
+    selected_model = (model or _get_db_config("AI_DEEPSEEK_MODEL") or "deepseek-chat").strip()
+    key = str(api_key or get_ring("AI_DEEPSEEK_API_KEY").pick() or "").strip()
+    if not key:
+      raise RuntimeError("Thiếu API key DeepSeek trong Cấu hình AI.")
+    return SummaryModelPlan(provider="deepseek", model=selected_model, api_key=key, base_url=base_url, prompt=prompt, max_tokens=max_tokens)
+  if resolved_provider == "gemini":
+    base_url = (_get_db_config("AI_GEMINI_BASE_URL") or "https://generativelanguage.googleapis.com/v1beta").strip()
+    selected_model = (model or _get_db_config("AI_GEMINI_MODEL") or "gemini-1.5-flash").strip()
+    key = str(api_key or get_ring("AI_GEMINI_API_KEY").pick() or "").strip()
+    if not key:
+      raise RuntimeError("Thiếu API key Gemini trong Cấu hình AI.")
+    return SummaryModelPlan(provider="gemini", model=selected_model, api_key=key, base_url=base_url, prompt=prompt, max_tokens=max_tokens)
+  raise RuntimeError(f"Provider tóm tắt không được hỗ trợ: {resolved_provider}")
+
+
+def validate_summary_model(*, model: str | None = None, prompt_mode: str | None = None, provider: str | None = None, api_key: str | None = None, content_type: str = "summary") -> dict:
+  plan = _build_summary_plan(model=model, prompt_mode=prompt_mode, provider=provider, api_key=api_key, content_type=content_type)
+  return {"provider": plan.provider, "provider_label": _friendly_provider_name(plan.provider), "model": plan.model, "base_url": plan.base_url}
 
 
 def _summarize_openai_compatible(
@@ -410,128 +461,30 @@ def summarize_text(
   api_key: str | None = None,
   content_type: str = "summary"
 ) -> tuple[str, str]:
-  provider = _resolve_provider_for_call(resolve_summary_provider(provider))
-  prompt = _pick_prompt(prompt_mode)
-  if str(content_type or "").strip().lower() == "ioffice_summary":
-    max_tokens = _read_int_env("EDUAI_IOFFICE_SUMMARY_MAX_TOKENS", 1600)
-  else:
-    max_tokens = _read_int_env("EDUAI_SUMMARY_MAX_TOKENS", 1024)
-
-  if provider == "fallback":
-    raise RuntimeError("Chưa cấu hình AI để tóm tắt. Vào Cấu hình AI, thêm API key OpenAI/Gemini/DeepSeek và chọn provider/model tóm tắt.")
-
-  if provider in ("openai", "openai_compatible"):
-    base_url = (_get_db_config("AI_OPENAI_BASE_URL") or "https://api.openai.com/v1").strip()
-    default_model = (_get_db_config("AI_OPENAI_MODEL") or "gpt-4o-mini").strip()
-    model_list = _parse_model_list(model, default_model)
-    
-    ring = get_ring("AI_OPENAI_API_KEY")
-    keys = ring.list_keys()
-    if api_key:
-      keys = [str(api_key).strip()]
-    if not keys:
-      raise RuntimeError("missing_openai_api_key")
-    last_err: Exception | None = None
-    
-    # Try keys then models
-    for _ in range(max(1, len(keys))):
-      k = keys[0] if api_key else (ring.pick() or "")
-      if not k:
-        break
-      # For each key, try models in order
-      for m in model_list:
-        try:
-            return _summarize_openai_compatible(text, api_key=k, base_url=base_url, model=m, prompt=prompt, max_tokens=max_tokens, provider_name="openai", content_type=content_type)
-        except Exception as e:
-            last_err = e
-            if is_key_exhausted_error(e):
-                ring.mark_bad(k, cooldown_seconds=120)
-                break # Break model loop to switch key
-            # If not key error (e.g. model not found), continue to next model
-            continue
-            
-    raise last_err or RuntimeError("missing_openai_api_key")
-
-  if provider == "deepseek":
-    base_url = (_get_db_config("AI_DEEPSEEK_BASE_URL") or "https://api.deepseek.com/v1").strip()
-    default_model = (_get_db_config("AI_DEEPSEEK_MODEL") or "deepseek-chat").strip()
-    model_list = _parse_model_list(model, default_model)
-
-    ring = get_ring("AI_DEEPSEEK_API_KEY")
-    keys = ring.list_keys()
-    if api_key:
-      keys = [str(api_key).strip()]
-    if not keys:
-      raise RuntimeError("missing_deepseek_api_key")
-    last_err: Exception | None = None
-    for _ in range(max(1, len(keys))):
-      k = keys[0] if api_key else (ring.pick() or "")
-      if not k:
-        break
-      for m in model_list:
-        try:
-            return _summarize_openai_compatible(text, api_key=k, base_url=base_url, model=m, prompt=prompt, max_tokens=max_tokens, provider_name="deepseek", content_type=content_type)
-        except Exception as e:
-            last_err = e
-            if is_key_exhausted_error(e):
-                ring.mark_bad(k, cooldown_seconds=120)
-                break
-            continue
-      
-      # Fallback to other providers if all keys are exhausted or error is persistent
-      if _ == max(1, len(keys)) - 1 and not api_key:
-             try:
-                 # Check if the error is "Model Not Exist"
-                 is_model_error = False
-                 if last_err and "Model Not Exist" in str(last_err):
-                     is_model_error = True
-                     
-                 # If it's a model error, we might want to try removing the specific model and use default
-                 if is_model_error and model:
-                     print(f"DeepSeek model '{model}' not found, trying default model...")
-                     return generate_text(user_text, system_prompt=system_prompt, model=None, provider=provider, api_key=None, content_type=content_type)
-                 
-                 print(f"DeepSeek exhausted, failing over to auto provider...")
-                 fallback_provider = _auto_pick_provider()
-                 if fallback_provider != "deepseek" and fallback_provider != "fallback":
-                     return generate_text(user_text, system_prompt=system_prompt, model=None, provider=fallback_provider, api_key=None, content_type=content_type)
-             except Exception:
-                 pass
-    raise last_err or RuntimeError("missing_deepseek_api_key")
-
-  if provider == "gemini":
-    base_url = (_get_db_config("AI_GEMINI_BASE_URL") or "https://generativelanguage.googleapis.com/v1beta").strip()
-    default_model = (_get_db_config("AI_GEMINI_MODEL") or "gemini-1.5-flash").strip()
-    model_list = _parse_model_list(model, default_model)
-    
-    ring = get_ring("AI_GEMINI_API_KEY")
-    keys = ring.list_keys()
-    if api_key:
-      keys = [str(api_key).strip()]
-    if not keys:
-      raise RuntimeError("missing_gemini_api_key")
-    last_err: Exception | None = None
-    for _ in range(max(1, len(keys))):
-      k = keys[0] if api_key else (ring.pick() or "")
-      if not k:
-        break
-      for m in model_list:
-        try:
-            chosen_model = _normalize_gemini_model_id(m)
-            return _summarize_gemini(text, api_key=k, base_url=base_url, model=chosen_model, prompt=prompt, max_tokens=max_tokens, content_type=content_type)
-        except Exception as e:
-            last_err = e
-            if is_key_exhausted_error(e):
-                ring.mark_bad(k, cooldown_seconds=120)
-                break
-            continue
-    raise last_err or RuntimeError("missing_gemini_api_key")
-
-  # --- START AUTO-FAILOVER LOGIC ---
-  # If we reached here, the requested provider failed or wasn't found.
-  # If the original call was specific (e.g. "openai"), we might want to try others if configured to do so.
-  # For now, we only implement simple failover if provider was "auto" (handled by resolve logic) or explicit recursion above.
-  raise RuntimeError(f"unsupported_provider:{provider}")
+  plan = _build_summary_plan(model=model, prompt_mode=prompt_mode, provider=provider, api_key=api_key, content_type=content_type)
+  if plan.provider in ("openai", "openai_compatible"):
+    try:
+      return _summarize_openai_compatible(text, api_key=plan.api_key, base_url=plan.base_url, model=plan.model, prompt=plan.prompt, max_tokens=plan.max_tokens, provider_name="openai", content_type=content_type)
+    except Exception as e:
+      if is_key_exhausted_error(e):
+        get_ring("AI_OPENAI_API_KEY").mark_bad(plan.api_key, cooldown_seconds=120)
+      raise RuntimeError(f"Model tóm tắt OpenAI-compatible không chạy được ({plan.model}). Kiểm tra lại model trước khi tóm tắt. Chi tiết: {e}") from e
+  if plan.provider == "deepseek":
+    try:
+      return _summarize_openai_compatible(text, api_key=plan.api_key, base_url=plan.base_url, model=plan.model, prompt=plan.prompt, max_tokens=plan.max_tokens, provider_name="deepseek", content_type=content_type)
+    except Exception as e:
+      if is_key_exhausted_error(e):
+        get_ring("AI_DEEPSEEK_API_KEY").mark_bad(plan.api_key, cooldown_seconds=120)
+      raise RuntimeError(f"Model tóm tắt DeepSeek không chạy được ({plan.model}). Kiểm tra lại model trước khi tóm tắt. Chi tiết: {e}") from e
+  if plan.provider == "gemini":
+    try:
+      chosen_model = _normalize_gemini_model_id(plan.model)
+      return _summarize_gemini(text, api_key=plan.api_key, base_url=plan.base_url, model=chosen_model, prompt=plan.prompt, max_tokens=plan.max_tokens, content_type=content_type)
+    except Exception as e:
+      if is_key_exhausted_error(e):
+        get_ring("AI_GEMINI_API_KEY").mark_bad(plan.api_key, cooldown_seconds=120)
+      raise RuntimeError(f"Model tóm tắt Gemini không chạy được ({plan.model}). Kiểm tra lại model trước khi tóm tắt. Chi tiết: {e}") from e
+  raise RuntimeError(f"unsupported_provider:{plan.provider}")
 
 
 def generate_text(
