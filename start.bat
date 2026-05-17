@@ -1,5 +1,5 @@
 @echo off
-chcp 65001 > nul
+if exist "%SystemRoot%\System32\chcp.com" "%SystemRoot%\System32\chcp.com" 65001 > nul
 setlocal EnableExtensions
 
 set "ROOT=%~dp0"
@@ -36,14 +36,14 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-npm --version >nul 2>&1
+call npm --version >nul 2>&1
 if errorlevel 1 (
   echo [LOI] Chua cai npm hoac npm chua co trong PATH.
   pause
   exit /b 1
 )
 node --version
-npm --version
+call npm --version
 
 echo.
 echo [3/8] Kiem tra Docker Desktop...
@@ -61,7 +61,7 @@ if errorlevel 1 (
 docker compose version
 
 echo.
-echo [4/8] Khoi dong MariaDB va Qdrant...
+echo [4/9] Khoi dong MariaDB va Qdrant...
 docker compose up -d
 if errorlevel 1 (
   echo [LOI] Khong khoi dong duoc Docker Compose.
@@ -71,7 +71,32 @@ if errorlevel 1 (
 )
 
 echo.
-echo [5/8] Tao moi truong Python neu chua co...
+echo [5/9] Doi MariaDB san sang va dam bao schema...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ok=$false; for($i=1;$i -le 40;$i++){ $m=(Test-NetConnection 127.0.0.1 -Port 3307 -WarningAction SilentlyContinue).TcpTestSucceeded; if($m){ $ok=$true; break }; Write-Host ('Dang doi MariaDB... lan ' + $i + '/40'); Start-Sleep -Seconds 3 }; if(-not $ok){ exit 1 }"
+if errorlevel 1 (
+  echo [LOI] MariaDB chua san sang sau khi cho.
+  pause
+  exit /b 1
+)
+docker compose exec -T mariadb mariadb -uroot -proot eduai_hub -e "SELECT 1 FROM ioffice_documents LIMIT 1" >nul 2>&1
+if errorlevel 1 (
+  echo Chua co schema day du, dang import database\schema.sql va database\seed.sql...
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-Content -Path '%ROOT%database\schema.sql' -Encoding UTF8 | docker compose exec -T mariadb mariadb -uroot -proot eduai_hub"
+  if errorlevel 1 (
+    echo [LOI] Import database\schema.sql that bai.
+    pause
+    exit /b 1
+  )
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-Content -Path '%ROOT%database\seed.sql' -Encoding UTF8 | docker compose exec -T mariadb mariadb -uroot -proot eduai_hub"
+  if errorlevel 1 (
+    echo [LOI] Import database\seed.sql that bai.
+    pause
+    exit /b 1
+  )
+)
+
+echo.
+echo [6/9] Tao moi truong Python neu chua co...
 if not exist "%VENV_DIR%\Scripts\python.exe" (
   python -m venv "%VENV_DIR%"
   if errorlevel 1 (
@@ -97,7 +122,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [7/8] Cai dat frontend dependencies va build giao dien...
+echo [8/9] Cai dat frontend dependencies va build giao dien...
 cd /d "%FRONTEND_DIR%"
 call npm install
 if errorlevel 1 (
@@ -113,7 +138,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [8/8] Khoi dong backend/web server...
+echo [9/9] Khoi dong backend/web server...
 cd /d "%BACKEND_DIR%"
 if "%EDUAI_SECRET_KEY%"=="" set "EDUAI_SECRET_KEY=dev-secret"
 set "EDUAI_PORT=%PORT%"
