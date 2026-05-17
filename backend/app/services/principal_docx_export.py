@@ -3,7 +3,6 @@ from __future__ import annotations
 import io
 import re
 import unicodedata
-from datetime import datetime
 from typing import Any
 
 from docx import Document
@@ -122,43 +121,42 @@ def _add_paragraph(doc: Document, text: str = "", *, align=None, bold: bool = Fa
   return p
 
 
-def _add_header_blocks(doc: Document, meta: dict, preset: dict):
-  agency = _compact(meta.get("agency_name") or meta.get("co_quan") or "[TÊN CƠ QUAN, ĐƠN VỊ]")
-  doc_no = _compact(meta.get("document_no") or meta.get("so_ky_hieu") or "Số: [số]/[ký hiệu]")
-  place = _compact(meta.get("place") or meta.get("dia_danh") or "[Địa danh]")
-  date_text = _compact(meta.get("date_text") or meta.get("ngay_thang") or datetime.now().strftime("ngày %d tháng %m năm %Y"))
-
-  table = doc.add_table(rows=1, cols=2)
-  table.alignment = WD_TABLE_ALIGNMENT.CENTER
-  table.columns[0].width = Cm(8.0)
-  table.columns[1].width = Cm(9.0)
-  for cell in table.rows[0].cells:
-    _set_cell_border_none(cell)
-    cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.TOP
-
-  left, right = table.rows[0].cells
-  _set_cell_text(left, agency.upper(), bold=True, size=12, align=WD_ALIGN_PARAGRAPH.CENTER)
-  p = left.add_paragraph()
-  p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-  _add_run(p, doc_no, size=12)
-
-  _set_cell_text(right, "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", bold=True, size=12, align=WD_ALIGN_PARAGRAPH.CENTER)
-  p2 = right.add_paragraph()
-  p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-  _add_run(p2, "Độc lập - Tự do - Hạnh phúc", bold=True, underline=True, size=12)
-  p3 = right.add_paragraph()
-  p3.alignment = WD_ALIGN_PARAGRAPH.CENTER
-  _add_run(p3, f"{place}, {date_text}", italic=True, size=12)
-
-  _add_paragraph(doc, "", space_after=6)
+def _remove_fence(text: str) -> str:
+  t = _plain(text)
+  m = re.search(r"```(?:text|markdown|md)?\s*([\s\S]*?)```", t, flags=re.I)
+  return _plain(m.group(1)) if m else t
 
 
-def _add_title(doc: Document, title: str, preset: dict):
-  doc_type = _compact(preset.get("doc_type") or preset.get("label") or "DỰ THẢO VĂN BẢN").upper()
-  _add_paragraph(doc, doc_type, align=WD_ALIGN_PARAGRAPH.CENTER, bold=True, size=14, space_after=3)
-  title2 = _compact(title)
-  if title2 and title2.upper() != doc_type:
-    _add_paragraph(doc, title2, align=WD_ALIGN_PARAGRAPH.CENTER, bold=True, size=13, space_after=8)
+def _is_chat_noise(line: str) -> bool:
+  t = _strip_markdown(line).strip().lower().rstrip(".:： ")
+  if not t:
+    return False
+  prefixes = (
+    "dưới đây là", "duoi day la", "sau đây là", "sau day la", "tôi xin", "toi xin",
+    "em xin", "kính gửi anh/chị", "kinh gui anh/chi", "bản dự thảo", "ban du thao",
+    "nội dung dự thảo", "noi dung du thao", "dự thảo như sau", "du thao nhu sau",
+  )
+  return any(t.startswith(p) for p in prefixes)
+
+
+def _clean_generated_text(generated_text: str) -> str:
+  t = _remove_fence(generated_text)
+  lines = [_strip_markdown(x.rstrip()) for x in t.split("\n")]
+  while lines and (not lines[0].strip() or _is_chat_noise(lines[0])):
+    lines.pop(0)
+  while lines and not lines[-1].strip():
+    lines.pop()
+  cut_markers = (
+    "rà soát trước khi ban hành", "ra soat truoc khi ban hanh", "ghi chú", "ghi chu",
+    "lưu ý:", "luu y:", "nếu cần", "neu can", "bạn có thể", "ban co the",
+  )
+  cleaned = []
+  for line in lines:
+    low = _strip_markdown(line).strip().lower()
+    if any(low.startswith(x) for x in cut_markers):
+      break
+    cleaned.append(line)
+  return _plain("\n".join(cleaned))
 
 
 def _is_heading(line: str) -> bool:
@@ -205,67 +203,15 @@ def _add_body_from_text(doc: Document, generated_text: str):
     _add_paragraph(doc, cleaned, bold=heading, size=13 if not heading else 13, space_after=4, first_line=not heading)
 
 
-def _add_signature(doc: Document, meta: dict):
-  signer_title = _compact(meta.get("signer_title") or meta.get("chuc_vu_ky") or "HIỆU TRƯỞNG")
-  signer_name = _compact(meta.get("signer_name") or meta.get("nguoi_ky") or "[Họ và tên]")
-  recipients = _plain(meta.get("recipients") or meta.get("noi_nhan") or "- Như trên;\n- Lưu: VT.")
-
-  _add_paragraph(doc, "", space_after=4)
-  table = doc.add_table(rows=1, cols=2)
-  table.columns[0].width = Cm(8.5)
-  table.columns[1].width = Cm(8.5)
-  for cell in table.rows[0].cells:
-    _set_cell_border_none(cell)
-    cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.TOP
-
-  left, right = table.rows[0].cells
-  _set_cell_text(left, "Nơi nhận:", bold=True, italic=True, size=12)
-  for ln in recipients.split("\n"):
-    t = ln.strip()
-    if t:
-      p = left.add_paragraph()
-      _add_run(p, t, size=11)
-
-  _set_cell_text(right, signer_title.upper(), bold=True, size=13, align=WD_ALIGN_PARAGRAPH.CENTER)
-  p = right.add_paragraph()
-  p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-  _add_run(p, "(Ký, ghi rõ họ tên)", italic=True, size=11)
-  for _ in range(4):
-    right.add_paragraph()
-  p2 = right.add_paragraph()
-  p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-  _add_run(p2, signer_name, bold=True, size=13)
-
-
-def _add_review_notes(doc: Document, generated_text: str):
-  if "Rà soát trước khi ban hành" in generated_text:
-    return
-  _add_paragraph(doc, "", space_after=4)
-  _add_paragraph(doc, "Rà soát trước khi ban hành", bold=True, size=12, space_after=2)
-  for item in (
-    "Kiểm tra lại số/ký hiệu, ngày tháng và thẩm quyền ký.",
-    "Bổ sung các thông tin còn để trong ngoặc [cần bổ sung] nếu có.",
-    "Đối chiếu căn cứ, đơn vị thực hiện và thời hạn trước khi phát hành.",
-  ):
-    p = _add_paragraph(doc, item, size=11, italic=True, space_after=1)
-    p.paragraph_format.left_indent = Cm(0.8)
-    if p.runs:
-      p.runs[0].text = "- " + p.runs[0].text
-
-
 def export_principal_decision_docx(*, title: str, generated_text: str, meta: dict, decision_id: int) -> tuple[bytes, str]:
-  text = _plain(generated_text)
+  text = _clean_generated_text(generated_text)
   if not text:
     raise RuntimeError("empty_generated_text")
   meta2 = meta if isinstance(meta, dict) else {}
   preset = get_principal_document_preset(meta2.get("preset_id"))
   doc = Document()
   _style_doc(doc)
-  _add_header_blocks(doc, meta2, preset)
-  _add_title(doc, title or meta2.get("title") or meta2.get("user_request") or "Dự thảo văn bản", preset)
   _add_body_from_text(doc, text)
-  _add_signature(doc, meta2)
-  _add_review_notes(doc, text)
   buf = io.BytesIO()
   doc.save(buf)
   filename = _filename(int(decision_id or 0), title or meta2.get("title") or "du-thao", str(preset.get("filename_prefix") or "van-ban"))

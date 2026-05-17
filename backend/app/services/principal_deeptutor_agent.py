@@ -138,7 +138,7 @@ def _build_admin_writing_policy() -> str:
     "- Không trả lời kiểu hội thoại, không viết lời giải thích ngoài văn bản dự thảo.\n"
     "- Nếu chỉ yêu cầu ý kiến tham mưu/chỉ đạo, trình bày thành các mục: Nội dung xử lý; Giao nhiệm vụ; Thời hạn; Lưu ý.\n"
     "- Khi dùng căn cứ từ trích dẫn, đặt mã [[CIT-XX]] ngay sau câu liên quan.\n"
-    "- Cuối văn bản thêm mục 'Rà soát trước khi ban hành' gồm tối đa 4 gạch đầu dòng nêu chỗ cần kiểm tra/bổ sung."
+    "- Không thêm mục rà soát, ghi chú, lời dặn hoặc phần giải thích sau văn bản trừ khi người dùng yêu cầu."
   )
 
 
