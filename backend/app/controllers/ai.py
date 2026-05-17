@@ -1,10 +1,11 @@
 import asyncio
 import json
+import urllib.parse
 import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Header, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -19,6 +20,13 @@ def _user_id(x_user_id: str | None) -> int:
 
 def _now_utc() -> datetime:
   return datetime.now(timezone.utc)
+
+
+def _content_disposition(filename: str) -> str:
+  safe = str(filename or "document.docx").replace("\\", "_").replace("/", "_").replace('"', "'")
+  ascii_name = "".join(ch if 32 <= ord(ch) < 127 else "_" for ch in safe) or "document.docx"
+  quoted = urllib.parse.quote(safe, safe="")
+  return f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quoted}"
 
 
 def _truncate(s: str, max_len: int) -> str:
@@ -245,6 +253,61 @@ def list_principal_decisions(
       }
     )
   return {"ok": True, "items": items}
+
+
+@router.get("/principal/decisions/{decision_id}/export-docx")
+def export_principal_decision_docx_api(
+  decision_id: int,
+  x_user_id: str | None = Header(default=None),
+):
+  from app.db import get_db_connection
+  from app.services.principal_docx_export import CONTENT_TYPE_DOCX, export_principal_decision_docx
+
+  uid = _user_id(x_user_id)
+  did = int(decision_id or 0)
+  if did < 1:
+    raise HTTPException(status_code=400, detail="invalid_decision_id")
+
+  with get_db_connection() as conn:
+    with conn.cursor() as cur:
+      cur.execute(
+        """
+        SELECT
+          d.id AS decision_id,
+          d.ai_suggestion,
+          r.user_id,
+          r.prompt,
+          r.rag_query
+        FROM ai_decisions d
+        JOIN ai_requests r ON r.id=d.ai_request_id
+        WHERE d.id=%s
+        LIMIT 1
+        """,
+        (did,),
+      )
+      row = cur.fetchone() or None
+
+  if not row:
+    raise HTTPException(status_code=404, detail="not_found")
+  if int(row.get("user_id") or 0) != uid:
+    raise HTTPException(status_code=403, detail="forbidden")
+
+  meta = _parse_json(row.get("rag_query"))
+  if not isinstance(meta, dict):
+    meta = {}
+  title = str(meta.get("title") or row.get("prompt") or f"Văn bản {did}").strip()
+  generated_text = str(row.get("ai_suggestion") or "").strip()
+  if not generated_text:
+    raise HTTPException(status_code=400, detail="empty_generated_text")
+  try:
+    content, filename = export_principal_decision_docx(title=title, generated_text=generated_text, meta=meta, decision_id=did)
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=str(e))
+  return Response(
+    content=content,
+    media_type=CONTENT_TYPE_DOCX,
+    headers={"Content-Disposition": _content_disposition(filename), "Cache-Control": "no-store"},
+  )
 
 
 @router.get("/principal/decisions/{decision_id}")

@@ -206,9 +206,14 @@
                 <div class="col-12 col-lg-6">
                   <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                     <div class="fw-semibold">Kết quả</div>
-                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="output" title="Trợ giúp">
-                      <i class="bi bi-question-circle"></i>
-                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                      <button class="btn btn-sm btn-outline-primary" type="button" data-ai-action="export-docx" disabled title="Xuất file Word để in">
+                        <i class="bi bi-file-earmark-word"></i> Xuất DOCX/In
+                      </button>
+                      <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="output" title="Trợ giúp">
+                        <i class="bi bi-question-circle"></i>
+                      </button>
+                    </div>
                   </div>
                   <div class="border rounded p-2" style="min-height: 220px; max-height: calc(100vh - 560px); overflow:auto">
                     <div class="small text-muted mb-2" data-ai="output-notes"></div>

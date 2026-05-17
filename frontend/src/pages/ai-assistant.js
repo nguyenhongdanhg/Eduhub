@@ -583,6 +583,28 @@ function syncRequestCollapsed() {
   if (icon) icon.className = collapsed ? "bi bi-chevron-bar-down" : "bi bi-chevron-bar-up";
 }
 
+function syncExportDocxButton() {
+  const btn = qs('[data-ai-action="export-docx"]');
+  if (!btn) return;
+  const outText = String(qs('[data-ai="output"]')?.textContent || "").trim();
+  btn.disabled = !(currentDecisionId > 0 && outText && !_isNonFinalOutput(outText) && outText !== "—");
+}
+
+function exportCurrentDecisionDocx() {
+  if (!(currentDecisionId > 0)) {
+    showToast("warning", "Cần chạy hoặc lưu trợ lý trước khi xuất DOCX.");
+    return;
+  }
+  const outText = String(qs('[data-ai="output"]')?.textContent || "").trim();
+  if (!outText || outText === "—" || _isNonFinalOutput(outText)) {
+    showToast("warning", "Chưa có nội dung văn bản để xuất DOCX.");
+    return;
+  }
+  scheduleAutosaveDraft();
+  const url = `${API_BASE}/ai/principal/decisions/${encodeURIComponent(String(currentDecisionId))}/export-docx?t=${Date.now()}`;
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
 function updateOutputNotes() {
   const el = qs('[data-ai="output-notes"]');
   if (!el) return;
@@ -968,6 +990,7 @@ async function applyDeepLinkContext() {
   if (ragEl) ragEl.checked = true;
   const outEl = qs('[data-ai="output"]');
   if (outEl) outEl.textContent = "Đã nạp văn bản từ danh sách. Hãy chỉnh yêu cầu rồi bấm Chạy trợ lý để tạo văn bản.";
+  syncExportDocxButton();
   setButtonsEnabled(true);
   setLayout("request_full");
   saveWorkspaceCache(snapshotWorkspaceState());
@@ -1147,6 +1170,7 @@ function setButtonsEnabled(enabled) {
     const btn = qs(`[data-ai-action="${a}"]`);
     if (btn) btn.disabled = !can;
   }
+  syncExportDocxButton();
 }
 
 function renderUploadList() {
@@ -1535,6 +1559,7 @@ function resetForm() {
 
   const outEl = qs('[data-ai="output"]');
   if (outEl) outEl.textContent = "—";
+  syncExportDocxButton();
   const thinkingEl = qs('[data-ai="thinking"]');
   if (thinkingEl) {
     const fallback = buildThinkingText("");
@@ -1643,6 +1668,7 @@ function applyDecisionToForm(item) {
 
   setMetaText(meta);
   setButtonsEnabled(true);
+  syncExportDocxButton();
   updateOutputNotes();
   const hasOutput = String(item?.ai_suggestion || "").trim().length > 0;
   const savedLayout = typeof meta?.ui_layout === "string" ? meta.ui_layout.trim() : "";
@@ -1662,6 +1688,7 @@ async function openDecision(id) {
     setButtonsEnabled(false);
     const outEl = qs('[data-ai="output"]');
     if (outEl) outEl.textContent = `Lỗi: ${readError(e)}`;
+    syncExportDocxButton();
   }
 }
 
@@ -1970,6 +1997,7 @@ async function regenerate() {
       thinkingEl.innerHTML = renderRunTimelineHtml({ run_events: activeRunEvents, reasoning_turns: reasoningTurns }) || escapeHtml(buildThinkingText("IdeaGen"));
     }
     if (outEl) outEl.textContent = "—";
+    syncExportDocxButton();
     const body = {
       doc_ids: docIds,
       work_ids: workIds,
@@ -1998,6 +2026,7 @@ async function regenerate() {
   } finally {
     updateAssistantFlow("");
     setButtonsEnabled(true);
+    syncExportDocxButton();
   }
 }
 
@@ -2145,8 +2174,9 @@ function bindEvents() {
   qs('[data-ai-action="refresh"]')?.addEventListener("click", async () => refreshHistory());
   qs('[data-ai-action="save"]')?.addEventListener("click", async () => saveDecision());
   qs('[data-ai-action="regenerate"]')?.addEventListener("click", async () => regenerate());
-  qs('[data-ai-action="podcast-speak"]')?.addEventListener("click", () => speakText(currentPodcast));
+  qs('[data-ai-action="podcast-speak"]')?.addEventListener("click", () => speakPodcast());
   qs('[data-ai-action="podcast-stop"]')?.addEventListener("click", () => stopSpeak());
+  qs('[data-ai-action="export-docx"]')?.addEventListener("click", () => exportCurrentDecisionDocx());
   qs('[data-ai="request"]')?.addEventListener("input", () => {
     setButtonsEnabled(true);
     scheduleAutosaveDraft();
