@@ -418,7 +418,7 @@ def summarize_text(
     max_tokens = _read_int_env("EDUAI_SUMMARY_MAX_TOKENS", 1024)
 
   if provider == "fallback":
-    return _fallback(text), "fallback"
+    raise RuntimeError("Chưa cấu hình AI để tóm tắt. Vào Cấu hình AI, thêm API key OpenAI/Gemini/DeepSeek và chọn provider/model tóm tắt.")
 
   if provider in ("openai", "openai_compatible"):
     base_url = (_get_db_config("AI_OPENAI_BASE_URL") or "https://api.openai.com/v1").strip()

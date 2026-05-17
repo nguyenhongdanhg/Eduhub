@@ -1581,14 +1581,6 @@ def ui_ai_summary(payload: UiAiSummaryBody):
           model=(payload.model or None),
           prompt_mode=(payload.prompt_mode or None),
         )
-        if doc.get("content_hash") and doc.get("content_hash") == content_hash and (doc.get("summary_text") or "").strip():
-          with get_db_connection() as conn:
-            with conn.cursor() as cur:
-              cur.execute(
-                "UPDATE ioffice_documents SET summary_status='READY', summary_error=NULL, summary_updated_at=CURRENT_TIMESTAMP WHERE ioffice_doc_id=%s",
-                (did,),
-              )
-          return
         with get_db_connection() as conn:
           with conn.cursor() as cur:
             cur.execute("UPDATE ioffice_documents SET summary_status='PROCESSING', summary_updated_at=CURRENT_TIMESTAMP WHERE ioffice_doc_id=%s", (did,))

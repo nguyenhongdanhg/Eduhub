@@ -829,6 +829,7 @@ function fillSummaryModal(item) {
   const ty = String(it?.trich_yeu || "").trim();
   const sum = cleanSummaryText(String(it?.ai_summary || ""));
   const st = String(it?.ai_status || "").trim().toUpperCase();
+  const model = String(it?.ai_model || "").trim();
   const err = String(it?.ai_error || it?.fetch_error || "").trim();
   const linkGoc = String(it?.link_goc || "").trim();
   const fp = String(it?.duong_dan_file || "").trim();
@@ -840,7 +841,7 @@ function fillSummaryModal(item) {
   const meta = qs('[data-ioffice="sum-meta"]');
   if (meta) meta.textContent = `${skh}${ty ? " · " + truncateSmart(ty, 220, 40) : ""}`;
   const statusEl = qs('[data-ioffice="sum-status"]');
-  if (statusEl) statusEl.innerHTML = summaryBadge(st);
+  if (statusEl) statusEl.innerHTML = `${summaryBadge(st)}${model ? ` <span class="badge text-bg-light border ms-1">Model: ${escapeHtml(model)}</span>` : ""}`;
   const errEl = qs('[data-ioffice="sum-error"]');
   if (errEl) errEl.textContent = err ? ` ${truncateSmart(err, 300, 60)}` : "";
   const txt = qs('[data-ioffice="sum-text"]');
@@ -1065,6 +1066,7 @@ async function refreshSummaryModal() {
       row.ai_summary = res.item.ai_summary;
       row.ai_status = res.item.ai_status;
       row.ai_error = res.item.ai_error;
+      row.ai_model = res.item.ai_model;
     }
     const offset = (currentPage - 1) * pageSize;
     const tbody = qs('[data-ioffice="tbody"]');
@@ -1082,6 +1084,11 @@ async function runSummary(docId) {
   try {
     const model = String(qs('[data-ioffice="sum-model"]')?.value || "").trim() || null;
     const promptMode = String(qs('[data-ioffice="sum-prompt"]')?.value || "").trim() || null;
+    const row = docs.find((d) => String(d?.doc_id || "") === did) || null;
+    const oldModel = String(row?.ai_model || "").trim();
+    if (oldModel === "fallback") {
+      showToast("warning", "Tóm tắt cũ là nội dung tạm vì chưa cấu hình AI. Hãy cấu hình API key/provider AI rồi bấm Tóm tắt lại.");
+    }
     if (!promptMode) {
       showToast("warning", "Chưa chọn prompt tóm tắt. Hãy tạo/chọn prompt trong phần Prompt.");
       return;
