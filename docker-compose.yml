@@ -1,4 +1,15 @@
 services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://eduai:eduai@mariadb:3306/eduai_hub
+    depends_on:
+      - mariadb
+      - qdrant
+    restart: unless-stopped
+
   mariadb:
     image: mariadb:11
     environment:
