@@ -1,17 +1,27 @@
 @echo off
 chcp 65001 > nul
+setlocal EnableExtensions
+
+set "ROOT=%~dp0"
+set "PORT=3000"
+if not "%EDUAI_PORT%"=="" set "PORT=%EDUAI_PORT%"
+
 echo ==========================================
 echo       DUNG EDUAI HUB
 echo ==========================================
+echo Cong ung dung: %PORT%
+echo.
 
-echo [1/2] Dang dung MariaDB va Qdrant (Docker)...
+echo [1/2] Dung backend neu dang nghe tren port %PORT%...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Get-NetTCPConnection -LocalPort %PORT% -State Listen -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force; Write-Host ('Da dung process PID ' + $_) } } catch { Write-Host 'Khong tim thay backend dang chay tren port %PORT%.' }"
+
+echo.
+echo [2/2] Dung MariaDB va Qdrant Docker...
+cd /d "%ROOT%"
 docker compose down
 
 echo.
-echo [2/2] De dung Backend Service, vui long nhan Ctrl+C o cua so dang chay start.bat.
-echo Neu cua so start.bat da dong, ban co the dung lenh sau de kill process tren port 3000:
-echo.
 echo ==========================================
-echo Dung thanh cong!
+echo Da dung he thong.
 echo ==========================================
 pause

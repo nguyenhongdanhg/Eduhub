@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from starlette.staticfiles import StaticFiles
 
 from app.controllers.ioffice import router as ioffice_router
@@ -57,6 +58,10 @@ try:
     assets_dir = dist_dir / "assets"
     static_dir = dist_dir / "static"
     if views_dir.exists():
+      @app.get("/", include_in_schema=False)
+      def _frontend_root():
+        return RedirectResponse(url="/views/dashboard/index.html")
+
       app.mount("/views", StaticFiles(directory=str(views_dir), html=True), name="views")
     if assets_dir.exists():
       app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")

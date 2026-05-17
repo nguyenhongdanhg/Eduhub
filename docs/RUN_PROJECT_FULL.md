@@ -12,7 +12,30 @@ Tài liệu này mô tả cách chạy dự án theo 2 chế độ:
 - Node.js 18+ (khuyến nghị 20)
 - (Tuỳ chọn nhưng khuyến nghị) Docker Desktop để chạy MariaDB + Qdrant bằng `docker compose`
 
-## 1) Khởi động dịch vụ phụ trợ (MariaDB + Qdrant)
+## 1) Chạy nhanh trên Windows bằng file BAT
+
+Tại thư mục gốc dự án, có thể chạy tự động bằng:
+
+```powershell
+.\start.bat
+```
+
+Trong PowerShell không chạy `start.bat` trực tiếp; cần dùng `./start.bat` hoặc ghi dạng đường dẫn tương đương. File này kiểm tra Python/Node/Docker, khởi động MariaDB + Qdrant, tạo `.venv` nếu thiếu, cài dependencies, build frontend và chạy backend iOffice service tại `http://127.0.0.1:3000/`.
+
+Dừng hệ thống bằng:
+
+```powershell
+.\stop.bat
+```
+
+Nếu cần đổi port:
+
+```powershell
+$env:EDUAI_PORT="3001"
+.\start.bat
+```
+
+## 2) Khởi động dịch vụ phụ trợ (MariaDB + Qdrant)
 
 ### Cách A (khuyến nghị): dùng Docker Compose
 
@@ -37,7 +60,7 @@ Bạn cần có:
 - MariaDB (tạo DB `eduai_hub`)
 - Qdrant (mặc định `http://127.0.0.1:6333`)
 
-## 2) Khởi tạo database (schema + seed)
+## 3) Khởi tạo database (schema + seed)
 
 Chạy `database/schema.sql` và (tuỳ chọn) `database/seed.sql` vào MariaDB.
 
@@ -63,7 +86,7 @@ Nếu bạn dùng Docker Compose mặc định trong repo thì các thông số 
 - pass: `root`
 - db: `eduai_hub`
 
-## 3) Cài dependencies
+## 4) Cài dependencies
 
 ### Backend (Python)
 
@@ -85,7 +108,7 @@ cd frontend
 npm install
 ```
 
-## 4) Chạy dự án
+## 5) Chạy dự án
 
 ### Chế độ A (khuyến nghị): Dev chuẩn (code mới thấy ngay)
 
@@ -133,44 +156,48 @@ Truy cập:
 - API: http://127.0.0.1:8000/api
 - Health: http://127.0.0.1:8000/healthz
 
-### Chế độ B: Single-port (backend serve UI từ `frontend/dist`)
+### Chế độ B: Single-port iOffice (backend serve UI từ `frontend/dist`)
 
-Mở 2 terminal.
-
-**Terminal 1: build frontend liên tục khi sửa**
+Build frontend trước:
 
 ```bash
 cd frontend
-npm run build -- --watch
+npm run build
+cd ..
 ```
 
-**Terminal 2: chạy backend (auto-reload khi sửa Python)**
+Chạy backend iOffice:
 
 PowerShell (khuyến nghị):
 
 ```powershell
 cd backend
 $env:EDUAI_SECRET_KEY="dev-secret"
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+$env:EDUAI_PORT="3000"
+python .\run_ioffice_service.py
 ```
 
 CMD:
 
-```bash
+```bat
 cd backend
 set EDUAI_SECRET_KEY=dev-secret
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+set EDUAI_PORT=3000
+python run_ioffice_service.py
 ```
 
 Truy cập:
 
-- UI (served): http://127.0.0.1:8000/
+- UI: http://127.0.0.1:3000/
+- Dashboard trực tiếp: http://127.0.0.1:3000/views/dashboard/index.html
+- Health: http://127.0.0.1:3000/healthz
 
 Ghi chú:
 
-- Chế độ này **không có HMR**; UI thường cần refresh để thấy thay đổi (nhưng `dist` sẽ được build mới).
+- Chế độ này **không có HMR**; khi sửa frontend cần build lại.
+- Route `/` của iOffice service redirect về `/views/dashboard/index.html` để tránh lỗi `{"detail":"Not Found"}` khi mở `http://localhost:3000/`.
 
-## 5) Biến môi trường quan trọng
+## 6) Biến môi trường quan trọng
 
 ### Bắt buộc
 
@@ -189,7 +216,7 @@ Ghi chú:
 - `EDUAI_QDRANT_URL` (mặc định `http://127.0.0.1:6333`)
 - `EDUAI_QDRANT_API_KEY` (tuỳ chọn)
 
-## 6) ioffice_sync: OFF · ioffice_auto_summary: ON là gì?
+## 7) ioffice_sync: OFF · ioffice_auto_summary: ON là gì?
 
 Ở trang iOffice có hiển thị trạng thái worker:
 
@@ -210,14 +237,15 @@ CMD:
 set EDUAI_IOFFICE_AUTO_SUMMARY=0
 ```
 
-## 7) Kiểm tra nhanh sau khi chạy
+## 8) Kiểm tra nhanh sau khi chạy
 
 - Backend OK: `GET /healthz`
 - Trạng thái hệ thống: `GET /api/system/status`
 - Thống kê RAG: `GET /api/rag/stats`
 
-## 8) Troubleshooting
+## 9) Troubleshooting
 
+- **Mở `http://localhost:3000/` thấy `{"detail":"Not Found"}` hoặc `net::ERR_ABORTED`**: dừng backend cũ rồi chạy lại `start.bat`; bản hiện tại redirect `/` về `/views/dashboard/index.html`. Có thể mở trực tiếp `http://127.0.0.1:3000/views/dashboard/index.html` để kiểm tra.
 - **UI ở `:8000` “cũ hơn” UI ở `:3000`**: `:8000` đang serve `frontend/dist`. Hãy chạy `npm run build` (hoặc `npm run build -- --watch`) để cập nhật `dist`.
 - **Docker compose lỗi “cannot find pipe/dockerDesktopLinuxEngine”**: Docker Desktop chưa chạy.
 - **Docker compose lỗi “Bind for 0.0.0.0:3306 failed: port is already allocated”**: MariaDB/MySQL khác đang chiếm cổng 3306. Repo mặc định dùng 3307 để tránh xung đột; nếu bạn đã sửa lại về 3306 thì hãy đổi sang cổng trống.

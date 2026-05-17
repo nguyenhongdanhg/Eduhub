@@ -44,7 +44,50 @@ Nếu đã có source code, mở PowerShell tại thư mục dự án:
 cd d:\JS\SangTaoVoiAI\EduAI_Hub
 ```
 
-## 3. Khởi động MariaDB và Qdrant
+## 3. Cài/chạy tự động bằng file BAT trên Windows
+
+Nếu chạy trên Windows, cách nhanh nhất là mở file `start.bat` tại thư mục gốc dự án. File này tự thực hiện các bước chính:
+
+- Kiểm tra Python, Node.js/npm và Docker Desktop.
+- Khởi động MariaDB và Qdrant bằng Docker Compose.
+- Tạo virtual environment `.venv` nếu chưa có.
+- Cài backend dependencies từ `backend/requirements.txt`.
+- Cài frontend dependencies bằng `npm install`.
+- Build frontend vào `frontend/dist`.
+- Chạy backend iOffice service tại `http://127.0.0.1:3000/`.
+
+Cách chạy:
+
+```text
+Nhấp đúp start.bat
+```
+
+Hoặc chạy từ PowerShell/CMD tại thư mục gốc:
+
+```powershell
+.\start.bat
+```
+
+Lưu ý: trong PowerShell phải dùng `./start.bat` hoặc ghi dạng đường dẫn tương đương; nếu gõ `start.bat` sẽ bị báo không tìm thấy lệnh vì PowerShell không tự chạy file trong thư mục hiện tại.
+
+Nếu muốn dùng port khác, đặt biến `EDUAI_PORT` trước khi chạy:
+
+```powershell
+$env:EDUAI_PORT="3001"
+.\start.bat
+```
+
+Để dừng hệ thống, chạy:
+
+```powershell
+.\stop.bat
+```
+
+`stop.bat` sẽ dừng backend đang nghe trên port cấu hình và dừng MariaDB/Qdrant bằng `docker compose down`.
+
+Các mục bên dưới là hướng dẫn cài thủ công khi cần kiểm soát từng bước hoặc xử lý lỗi.
+
+## 4. Khởi động MariaDB và Qdrant
 
 Chạy tại thư mục gốc của dự án:
 
@@ -65,7 +108,7 @@ Mặc định dự án dùng:
 
 Nếu Docker báo không kết nối được daemon, hãy mở Docker Desktop rồi chạy lại lệnh trên.
 
-## 4. Khởi tạo database
+## 5. Khởi tạo database
 
 Database mặc định là `eduai_hub`, user `root`, password `root`, port `3307`.
 
@@ -84,7 +127,7 @@ mysql -h 127.0.0.1 -P 3307 -u root -proot -e "CREATE DATABASE IF NOT EXISTS edua
 
 Sau đó chạy lại hai lệnh import ở trên.
 
-## 5. Cài backend
+## 6. Cài backend
 
 Tạo virtual environment tại thư mục gốc:
 
@@ -108,7 +151,7 @@ Nếu dùng chức năng đồng bộ/fetch iOffice bằng Playwright, cài thê
 python -m playwright install
 ```
 
-## 6. Cài frontend
+## 7. Cài frontend
 
 ```powershell
 cd frontend
@@ -116,7 +159,7 @@ npm install
 cd ..
 ```
 
-## 7. Cấu hình biến môi trường backend
+## 8. Cấu hình biến môi trường backend
 
 Tạo file `backend/.env` nếu chưa có:
 
@@ -147,7 +190,7 @@ Lưu ý bảo mật:
 - Đổi `EDUAI_SECRET_KEY` thành chuỗi bí mật riêng khi chạy thật.
 - API key AI của hệ thống nên cấu hình qua trang quản trị/cơ sở dữ liệu `system_configs`, không hard-code trong source code.
 
-## 8. Build frontend
+## 9. Build frontend
 
 Để chạy chế độ một cổng, backend sẽ serve frontend từ `frontend/dist`. Build giao diện trước:
 
@@ -159,7 +202,7 @@ cd ..
 
 Mỗi khi sửa frontend và muốn chạy bằng backend single-port, cần build lại.
 
-## 9. Chạy ứng dụng chế độ một cổng
+## 10. Chạy ứng dụng chế độ một cổng
 
 Đây là chế độ khuyến nghị cho iOffice service: frontend và API cùng chạy trên một port.
 
@@ -185,7 +228,7 @@ python .\run_ioffice_service.py
 
 Khi đó mở `http://localhost:3001/`.
 
-## 10. Chạy chế độ phát triển frontend/backend riêng
+## 11. Chạy chế độ phát triển frontend/backend riêng
 
 Dùng chế độ này khi đang sửa code frontend và muốn hot reload.
 
@@ -212,7 +255,7 @@ Truy cập:
 - Backend API: `http://127.0.0.1:8000/`
 - Health check: `http://127.0.0.1:8000/healthz`
 
-## 11. Kiểm tra sau khi cài đặt
+## 12. Kiểm tra sau khi cài đặt
 
 Mở trình duyệt và kiểm tra:
 
@@ -235,7 +278,7 @@ Invoke-RestMethod http://localhost:3000/healthz
 Invoke-RestMethod http://localhost:3000/api/system/status
 ```
 
-## 12. Đồng bộ dữ liệu iOffice
+## 13. Đồng bộ dữ liệu iOffice
 
 Service iOffice không tự đồng bộ văn bản ngay khi backend khởi động. Sau khi đăng nhập/cấu hình tài khoản iOffice trên giao diện, cần bấm nút đồng bộ trên UI hoặc gọi API:
 
@@ -249,7 +292,7 @@ Kiểm tra trạng thái đồng bộ:
 Invoke-RestMethod http://localhost:3000/api/ioffice/sync/status
 ```
 
-## 13. Cấu hình AI, tóm tắt và TTS
+## 14. Cấu hình AI, tóm tắt và TTS
 
 Sau khi ứng dụng chạy, mở trang cấu hình AI trên giao diện để thêm provider/model/API key. Backend ưu tiên lấy API key từ database `system_configs`.
 
@@ -265,7 +308,7 @@ EDUAI_SUMMARY_PROVIDER=auto
 
 Nếu chưa cấu hình OpenAI API key cho TTS, chức năng audio có thể báo thiếu key; giao diện vẫn có thể dùng đọc bằng trình duyệt nếu đã hỗ trợ fallback.
 
-## 14. Lệnh vận hành thường dùng
+## 15. Lệnh vận hành thường dùng
 
 Dừng dịch vụ Docker:
 
@@ -295,7 +338,7 @@ cd backend
 python .\run_ioffice_service.py
 ```
 
-## 15. Xử lý lỗi thường gặp
+## 16. Xử lý lỗi thường gặp
 
 ### Docker báo port đã được sử dụng
 
@@ -326,6 +369,30 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
 Sau đó activate lại virtual environment.
+
+### Truy cập `http://localhost:3000/` thấy `{"detail":"Not Found"}` hoặc `net::ERR_ABORTED`
+
+Nguyên nhân thường gặp là backend iOffice đang chạy bản cũ chưa có route `/`, hoặc frontend chưa được build/mount. Bản hiện tại đã redirect `/` về `/views/dashboard/index.html`; hãy dừng backend cũ rồi chạy lại:
+
+```bat
+stop.bat
+start.bat
+```
+
+Nếu vẫn lỗi, mở trực tiếp:
+
+```text
+http://127.0.0.1:3000/views/dashboard/index.html
+```
+
+Kiểm tra nhanh bằng PowerShell:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:3000/ -MaximumRedirection 0
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:3000/views/dashboard/index.html
+```
+
+Kết quả mong đợi: `/` trả redirect đến `/views/dashboard/index.html`, còn trang dashboard trả `200`.
 
 ### Backend chạy nhưng giao diện không mở được
 
@@ -375,7 +442,7 @@ Nếu không phản hồi, chạy lại:
 docker compose up -d
 ```
 
-## 16. Tài liệu liên quan
+## 17. Tài liệu liên quan
 
 - `docs/RUN_PROJECT_FULL.md`: hướng dẫn chạy đầy đủ theo chế độ dev và single-port.
 - `docs/RUN_IOFFICE_BACKEND.md`: hướng dẫn chạy backend iOffice tối giản.
