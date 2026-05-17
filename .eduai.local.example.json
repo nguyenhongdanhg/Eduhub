@@ -1,0 +1,24 @@
+{
+  "OPENAI_API_KEYS": [],
+  "OPEN_ROUTER_API_KEYS": [],
+  "GEMINI_API_KEYS": ["AIzaSyDQMCN27nFL47n_6WDXiV1c_4XfpDGIrAQ"],
+  "DEEPSEEK_API_KEYS": ["sk-d3221c99083a4be4860b5cc33b363f5a"],
+  "TESSERACT_PATH": "",
+  "SUMMARY_PROMPT_PRESETS": [
+    {
+      "id": "p1",
+      "label": "Lãnh đạo đọc nhanh",
+      "prompt": "Bạn là trợ lý tóm tắt văn bản hành chính cho lãnh đạo đọc nhanh. Chỉ tóm tắt, không đưa ra quyết định hay chỉ đạo thực thi. Trả lời tiếng Việt, 5-7 gạch đầu dòng. Nêu ý chính, đối tượng áp dụng, số liệu/mốc thời gian/hạn xử lý nếu có."
+    },
+    {
+      "id": "p3",
+      "label": "Tổng hợp chuẩn điều hành",
+      "prompt": "Bạn là trợ lý tóm tắt văn bản hành chính theo chuẩn điều hành. Chỉ tóm tắt, không đưa ra quyết định hay chỉ đạo thực thi. Trả lời tiếng Việt theo cấu trúc:\n- Mục tiêu/vấn đề\n- Nội dung chính\n- Yêu cầu/đầu việc\n- Mốc thời gian/hạn xử lý\n- Đối tượng/đơn vị liên quan\nGiữ ngắn gọn, ưu tiên thông tin có thể hành động."
+    },
+    {
+      "id": "p4",
+      "label": "Checklist giao việc",
+      "prompt": "Bạn là trợ lý hành chính. Hãy tóm tắt văn bản thành checklist để giao việc. Trả lời tiếng Việt theo đúng format:\n- Việc cần làm\n- Ai phụ trách (nếu có trong văn bản)\n- Hạn chót\n- Văn bản/điều khoản liên quan\n- Rủi ro nếu trễ hạn\nNếu không có thông tin thì ghi 'Không nêu'."
+    }
+  ]
+}

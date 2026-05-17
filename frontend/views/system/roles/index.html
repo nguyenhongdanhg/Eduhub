@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phân quyền · EduAI Hub</title>
+  </head>
+  <body
+    data-page-title="Phân quyền"
+    data-breadcrumb='[{"label":"Home","href":"/views/dashboard/index.html"},{"label":"Hệ thống"},{"label":"Phân quyền"}]'
+  >
+    <div id="page-content">
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Roles</h3>
+            </div>
+            <div class="card-body p-0">
+              <table class="table table-striped mb-0">
+                <thead>
+                  <tr>
+                    <th style="width: 160px">Code</th>
+                    <th>Tên</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>principal</td>
+                    <td>Hiệu trưởng</td>
+                  </tr>
+                  <tr>
+                    <td>teacher</td>
+                    <td>Giáo viên</td>
+                  </tr>
+                  <tr>
+                    <td>student</td>
+                    <td>Học sinh</td>
+                  </tr>
+                  <tr>
+                    <td>admin</td>
+                    <td>Quản trị hệ thống</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Permissions (mẫu)</h3>
+            </div>
+            <div class="card-body">
+              <span class="badge text-bg-primary me-2 mb-2">rag.management.query</span>
+              <span class="badge text-bg-success me-2 mb-2">rag.teaching.query</span>
+              <span class="badge text-bg-warning me-2 mb-2">rag.learning.query</span>
+              <span class="badge text-bg-secondary me-2 mb-2">system.users.manage</span>
+              <span class="badge text-bg-secondary me-2 mb-2">ioffice.sync</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/bootstrap-page.js"></script>
+  </body>
+</html>

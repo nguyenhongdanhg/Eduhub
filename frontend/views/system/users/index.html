@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Người dùng · EduAI Hub</title>
+  </head>
+  <body
+    data-page-title="Người dùng"
+    data-breadcrumb='[{"label":"Home","href":"/views/dashboard/index.html"},{"label":"Hệ thống"},{"label":"Người dùng"}]'
+  >
+    <div id="page-content">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Danh sách</h3>
+          <div class="card-tools">
+            <button class="btn btn-sm btn-primary">
+              <i class="fas fa-user-plus me-1"></i>Thêm
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-striped mb-0">
+            <thead>
+              <tr>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th style="width: 180px">Vai trò</th>
+                <th style="width: 140px">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Nguyễn Văn A</td>
+                <td>a@school.edu</td>
+                <td>Hiệu trưởng</td>
+                <td><span class="badge text-bg-success">Active</span></td>
+              </tr>
+              <tr>
+                <td>Trần Thị B</td>
+                <td>b@school.edu</td>
+                <td>Giáo viên</td>
+                <td><span class="badge text-bg-secondary">Disabled</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/bootstrap-page.js"></script>
+  </body>
+</html>

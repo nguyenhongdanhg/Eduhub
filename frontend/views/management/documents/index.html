@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Văn bản iOffice · EduAI Hub</title>
+  </head>
+  <body
+    data-page-title="Văn bản iOffice"
+    data-breadcrumb='[{"label":"Home","href":"/views/dashboard/index.html"},{"label":"Quản lý"},{"label":"Văn bản iOffice"}]'
+  >
+    <div id="page-content" data-page="ioffice-documents">
+      <div class="card card-outline card-tabs mb-3">
+        <div class="card-header p-0 pt-1 border-bottom-0">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-2">
+            <ul class="nav nav-tabs border-bottom-0 me-auto" data-ioffice="vb-tabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <a class="nav-link active" href="#" role="tab" data-ioffice-action="set-vb-tab" data-vb-tab="ALL">Tất cả</a>
+              </li>
+              <li class="nav-item" role="presentation">
+                <a class="nav-link" href="#" role="tab" data-ioffice-action="set-vb-tab" data-vb-tab="CHO_XU_LY">Chờ xử lý</a>
+              </li>
+              <li class="nav-item" role="presentation">
+                <a class="nav-link" href="#" role="tab" data-ioffice-action="set-vb-tab" data-vb-tab="XEM_DE_BIET">Xem để biết</a>
+              </li>
+              <li class="nav-item" role="presentation">
+                <a class="nav-link" href="#" role="tab" data-ioffice-action="set-vb-tab" data-vb-tab="DA_XU_LY">Đã xử lý</a>
+              </li>
+            </ul>
+
+            <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 py-1">
+              <div class="small d-flex flex-wrap align-items-center gap-2">
+                <a href="#" class="link-body-emphasis text-decoration-none" data-ioffice-action="set-vb-tab" data-vb-tab="ALL">
+                  <span data-ioffice="st-total">Tổng: 0</span>
+                </a>
+                <a href="#" class="link-body-emphasis text-decoration-none" data-ioffice-action="set-role" data-role="XLC">
+                  <span data-ioffice="st-xlc">XLC: 0</span>
+                </a>
+                <a href="#" class="link-body-emphasis text-decoration-none" data-ioffice-action="set-role" data-role="PH">
+                  <span data-ioffice="st-ph">PH: 0</span>
+                </a>
+                <a href="#" class="link-body-emphasis text-decoration-none" data-ioffice-action="set-role" data-role="OTHER">
+                  <span data-ioffice="st-other">Khác: 0</span>
+                </a>
+                <span class="text-danger d-none" data-ioffice="st-fail">Lỗi: 0</span>
+              </div>
+
+              <div class="d-flex flex-wrap align-items-center gap-2">
+                <div class="small text-muted" data-ioffice="run-status"></div>
+                <div class="btn-group" role="group" aria-label="Actions">
+                  <button class="btn btn-sm btn-outline-primary" type="button" data-ioffice-action="toggle-fetch" title="Chạy/Dừng">
+                    <i class="bi bi-play-fill"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-ioffice-action="open-log" title="Xem log">
+                    <i class="bi bi-terminal"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-ioffice-action="account" title="Tài khoản">
+                    <i class="bi bi-person-circle"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-ioffice-action="reload-page" title="Tải lại trang">
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="row g-2 align-items-center mb-3">
+            <div class="col-12 col-md-3">
+              <select class="form-select form-select-sm" data-ioffice="role">
+                <option value="">Vai trò (All)</option>
+                <option value="XLC">XLC</option>
+                <option value="PH">PH</option>
+                <option value="OTHER">Khác</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-5">
+              <div class="input-group input-group-sm">
+                <input class="form-control" data-ioffice="keyword" placeholder="Tìm theo trích yếu / tóm tắt / số ký hiệu..." />
+              </div>
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="input-group input-group-sm">
+                <input class="form-control" data-ioffice="semantic-query" placeholder="Tìm theo ngữ nghĩa (AI)..." disabled />
+                <button class="btn btn-primary" type="button" data-ioffice-action="semantic-search" title="Tìm theo ngữ nghĩa" disabled>
+                  <i class="bi bi-magic"></i>
+                </button>
+                <button
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  data-ioffice-action="toggle-semantic"
+                  title="Mở rộng tìm kiếm theo ngữ nghĩa"
+                >
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-12 col-md-12 text-md-end">
+              <button class="btn btn-sm btn-outline-warning d-none" type="button" data-ioffice-action="rerun-failed">
+                <i class="bi bi-arrow-repeat me-1"></i>Tải lại VB lỗi
+              </button>
+            </div>
+          </div>
+
+          <div class="collapse mb-3" id="iofficeSemanticCollapse">
+            <div class="border rounded p-3">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <div class="fw-semibold d-flex align-items-center gap-2">
+                  <span>Tìm kiếm theo ngữ nghĩa (AI)</span>
+                  <button
+                    class="btn btn-sm btn-link p-0 text-decoration-none"
+                    type="button"
+                    title="Hướng dẫn"
+                    data-bs-toggle="popover"
+                    data-bs-trigger="focus"
+                    data-bs-placement="auto"
+                    data-bs-html="true"
+                    data-bs-title="Tìm kiếm theo ngữ nghĩa (AI)"
+                    data-bs-content="<div class='small'><div class='mb-1'>Dùng để tìm văn bản theo ý nghĩa câu hỏi.</div><ul class='mb-0 ps-3'><li>Nhập câu hỏi ở ô phía trên (nút <b>magic</b>).</li><li>(Tùy chọn) Chọn <b>Công việc</b> để thu hẹp phạm vi.</li><li>Chọn <b>Top</b> để lấy nhiều/ít kết quả.</li><li>Bật <b>Tự động</b> để có phần tổng hợp.</li><li>Tích chọn kết quả rồi dùng <b>Sinh nội dung</b> nếu cần soạn thảo.</li></ul></div>"
+                  >
+                    ?
+                  </button>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                  <select class="form-select form-select-sm" data-ioffice="semantic-k" style="width:auto" title="Top" aria-label="Top" disabled>
+                    <option value="10">Top 10</option>
+                    <option value="15" selected>Top 15</option>
+                    <option value="20">Top 20</option>
+                  </select>
+                  <div class="small text-muted" data-ioffice="semantic-status"></div>
+                </div>
+              </div>
+
+              <div class="row g-2 align-items-start mb-2">
+                <div class="col-12 col-lg-3">
+                  <label class="form-label mb-1 d-flex align-items-center gap-2">
+                    <span>Công việc</span>
+                    <button
+                      class="btn btn-sm btn-link p-0 text-decoration-none"
+                      type="button"
+                      title="Hướng dẫn"
+                      data-bs-toggle="popover"
+                      data-bs-trigger="focus"
+                      data-bs-placement="auto"
+                      data-bs-html="true"
+                      data-bs-title="Công việc"
+                      data-bs-content="<div class='small'><div class='mb-1'>Là nhóm/nhãn để gom văn bản theo đầu việc.</div><ul class='mb-0 ps-3'><li>Khi <b>tìm</b>: chỉ trả về văn bản thuộc công việc đã chọn.</li><li>Khi <b>sinh nội dung</b>: dùng làm ngữ cảnh nghiệp vụ (tên + mô tả).</li></ul></div>"
+                    >
+                      ?
+                    </button>
+                  </label>
+                  <select class="form-select form-select-sm" data-ioffice="work-filter" multiple></select>
+                </div>
+                <div class="col-12 col-lg-9">
+                  <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                    <div class="d-flex align-items-center gap-2">
+                      <label class="form-label mb-0">Tổng hợp &amp; Phân tích</label>
+                      <label class="form-check form-switch m-0 small" title="Tự động tổng hợp/phân tích">
+                        <input class="form-check-input" type="checkbox" data-ioffice="semantic-auto" aria-label="Tự động" />
+                        <span class="form-check-label">Tự động</span>
+                      </label>
+                      <button
+                        class="btn btn-sm btn-link p-0 text-decoration-none"
+                        type="button"
+                        title="Hướng dẫn"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="focus"
+                        data-bs-placement="auto"
+                        data-bs-html="true"
+                        data-bs-title="Tổng hợp &amp; Phân tích"
+                        data-bs-content="<div class='small'><div class='mb-1'>Phần tổng hợp giúp đọc nhanh và gợi ý văn bản liên quan.</div><ul class='mb-0 ps-3'><li>Bật <b>Tự động</b>: hệ thống phân tích dựa trên kết quả tìm.</li><li>Tắt <b>Tự động</b>: chỉ hiển thị danh sách <b>Kết quả</b>.</li><li>Nếu kết quả ít/không đúng: chọn <b>Công việc</b> hoặc tăng <b>Top</b>.</li></ul></div>"
+                      >
+                        ?
+                      </button>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-ioffice-action="semantic-clear">Xóa</button>
+                  </div>
+                  <div class="border rounded p-2" style="max-height: 180px; overflow: auto">
+                    <div data-ioffice="semantic-analysis" class="small text-muted" style="white-space: pre-wrap; tab-size: 2">—</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="border rounded p-2 mb-3" style="max-height: 360px; overflow: auto">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <div class="fw-semibold d-flex align-items-center gap-2">
+                    <span>Kết quả</span>
+                    <button
+                      class="btn btn-sm btn-link p-0 text-decoration-none"
+                      type="button"
+                      title="Hướng dẫn"
+                      data-bs-toggle="popover"
+                      data-bs-trigger="focus"
+                      data-bs-placement="auto"
+                      data-bs-html="true"
+                      data-bs-title="Kết quả"
+                      data-bs-content="<div class='small'><ul class='mb-0 ps-3'><li>Điểm (score) càng cao càng phù hợp.</li><li>Tích chọn để đưa vào <b>Sinh nội dung</b>.</li><li>Bấm <b>Mở</b> để xem văn bản gốc.</li></ul></div>"
+                    >
+                      ?
+                    </button>
+                  </div>
+                  <div class="small text-muted" data-ioffice="semantic-meta"></div>
+                </div>
+                <div data-ioffice="semantic-results" class="small text-muted">Chưa tìm kiếm.</div>
+              </div>
+
+              <div class="border rounded p-2">
+                <div class="fw-semibold mb-2 d-flex align-items-center gap-2">
+                  <span>Sinh nội dung</span>
+                  <button
+                    class="btn btn-sm btn-link p-0 text-decoration-none"
+                    type="button"
+                    title="Hướng dẫn"
+                    data-bs-toggle="popover"
+                    data-bs-trigger="focus"
+                    data-bs-placement="auto"
+                    data-bs-html="true"
+                    data-bs-title="Sinh nội dung"
+                    data-bs-content="<div class='small'><div class='mb-1'>Soạn thảo từ văn bản đã chọn và/hoặc công việc.</div><ul class='mb-0 ps-3'><li>Tích chọn 1+ văn bản ở <b>Kết quả</b> (hoặc chọn Công việc).</li><li>Nhập <b>Yêu cầu đầu ra</b> (bắt buộc).</li><li>(Tùy chọn) Bật <b>Dùng tri thức RAG</b> để tham khảo kho tri thức.</li><li>Bấm <b>Sinh nội dung</b>, hệ thống sẽ kèm nguồn trích nếu có.</li></ul></div>"
+                  >
+                    ?
+                  </button>
+                </div>
+                <div class="row g-2">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label mb-1 d-flex align-items-center gap-2">
+                      <span>Mẫu</span>
+                      <button
+                        class="btn btn-sm btn-link p-0 text-decoration-none"
+                        type="button"
+                        title="Hướng dẫn"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="focus"
+                        data-bs-placement="auto"
+                        data-bs-html="true"
+                        data-bs-title="Mẫu"
+                        data-bs-content="<div class='small'><div class='mb-1'>Chọn mẫu hướng dẫn sẵn để sinh nội dung nhanh.</div><ul class='mb-0 ps-3'><li>Mẫu quyết định cấu trúc và phong cách đầu ra.</li><li>Chỉ dùng khi <b>Chế độ</b> = Dùng mẫu.</li></ul></div>"
+                      >
+                        ?
+                      </button>
+                    </label>
+                    <select class="form-select form-select-sm" data-ioffice="gen-preset" disabled></select>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label mb-1 d-flex align-items-center gap-2">
+                      <span>Chế độ</span>
+                      <button
+                        class="btn btn-sm btn-link p-0 text-decoration-none"
+                        type="button"
+                        title="Hướng dẫn"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="focus"
+                        data-bs-placement="auto"
+                        data-bs-html="true"
+                        data-bs-title="Chế độ"
+                        data-bs-content="<div class='small'><ul class='mb-0 ps-3'><li><b>Dùng mẫu</b>: sinh theo mẫu đã chọn.</li><li><b>Tự nhập</b>: dùng nội dung ở ô <b>Hướng dẫn</b> làm chỉ dẫn chính.</li></ul></div>"
+                      >
+                        ?
+                      </button>
+                    </label>
+                    <select class="form-select form-select-sm" data-ioffice="gen-mode" disabled>
+                      <option value="preset" selected>Dùng mẫu</option>
+                      <option value="custom">Tự nhập</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label mb-1 d-flex align-items-center gap-2">
+                      <span>Hướng dẫn</span>
+                      <button
+                        class="btn btn-sm btn-link p-0 text-decoration-none"
+                        type="button"
+                        title="Hướng dẫn"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="focus"
+                        data-bs-placement="auto"
+                        data-bs-html="true"
+                        data-bs-title="Hướng dẫn"
+                        data-bs-content="<div class='small'><div class='mb-1'>Chỉ dùng khi <b>Chế độ</b> = Tự nhập.</div><ul class='mb-0 ps-3'><li>Viết ngắn gọn: mục tiêu, giọng văn, định dạng.</li><li>Ví dụ: “Soạn thông báo triển khai, 5 gạch đầu dòng, có căn cứ trích dẫn nếu có”.</li></ul></div>"
+                      >
+                        ?
+                      </button>
+                    </label>
+                    <textarea class="form-control form-control-sm" data-ioffice="gen-custom" rows="3" placeholder="Nhập hướng dẫn..." disabled></textarea>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label mb-1 d-flex align-items-center gap-2">
+                      <span>Yêu cầu đầu ra</span>
+                      <button
+                        class="btn btn-sm btn-link p-0 text-decoration-none"
+                        type="button"
+                        title="Hướng dẫn"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="focus"
+                        data-bs-placement="auto"
+                        data-bs-html="true"
+                        data-bs-title="Yêu cầu đầu ra"
+                        data-bs-content="<div class='small'><div class='mb-1'>Bắt buộc. Nêu rõ bạn muốn hệ thống tạo ra gì.</div><ul class='mb-0 ps-3'><li>Ví dụ: “Soạn công văn trả lời…”, “Tóm tắt 5 gạch đầu dòng…”, “Lập kế hoạch triển khai…”.</li></ul></div>"
+                      >
+                        ?
+                      </button>
+                    </label>
+                    <textarea class="form-control form-control-sm" data-ioffice="gen-request" rows="3" placeholder="Ví dụ: Soạn thông báo triển khai..."></textarea>
+                  </div>
+                  <div class="col-12 d-flex justify-content-between align-items-center gap-2">
+                    <label class="form-check form-switch m-0 small" title="Sử dụng thêm tri thức từ kho RAG">
+                      <input class="form-check-input" type="checkbox" data-ioffice="gen-use-rag" checked />
+                      <span class="form-check-label d-flex align-items-center gap-2">
+                        <span>Dùng tri thức RAG</span>
+                        <button
+                          class="btn btn-sm btn-link p-0 text-decoration-none"
+                          type="button"
+                          title="Hướng dẫn"
+                          data-bs-toggle="popover"
+                          data-bs-trigger="focus"
+                          data-bs-placement="auto"
+                          data-bs-html="true"
+                          data-bs-title="Dùng tri thức RAG"
+                          data-bs-content="<div class='small'><div class='mb-1'>Bật để AI tham khảo thêm kho tri thức nội bộ (nếu có).</div><ul class='mb-0 ps-3'><li>Khuyến nghị bật khi cần quy định/quy trình chung.</li><li>Tắt nếu chỉ muốn dựa trên văn bản đã chọn.</li></ul></div>"
+                        >
+                          ?
+                        </button>
+                      </span>
+                    </label>
+                    <button class="btn btn-sm btn-success" type="button" data-ioffice-action="gen-run" disabled>
+                      <i class="bi bi-send me-1"></i>Sinh nội dung
+                    </button>
+                  </div>
+                  <div class="col-12">
+                    <div class="border rounded p-2" style="overflow: auto">
+                      <div data-ioffice="gen-output" class="small" style="white-space: pre-wrap">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" data-ioffice="table">
+              <thead>
+                <tr>
+                  <th style="width: 60px">#</th>
+                  <th style="min-width: 220px">Số ký hiệu</th>
+                  <th style="min-width: 320px">Trích yếu</th>
+                  <th style="min-width: 274px">Tóm tắt</th>
+                  <th style="width: 188px; cursor: pointer" class="text-nowrap" data-ioffice-sort="time" role="button" tabindex="0" aria-sort="descending">
+                    T.Gian <i class="bi bi-caret-down-fill ms-1" data-ioffice-sort-icon="time"></i>
+                  </th>
+                  <th style="width: 120px">Công việc</th>
+                  <th style="width: 140px" class="text-end">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody data-ioffice="tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <div class="small text-muted" data-ioffice="pager-info">—</div>
+              <div class="d-flex align-items-center gap-2">
+                <span class="small text-muted">/ trang</span>
+                <select class="form-select form-select-sm" style="width: auto" data-ioffice="page-size">
+                  <option value="10">10</option>
+                  <option value="20" selected>20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <nav aria-label="Pagination">
+                <ul class="pagination pagination-sm mb-0" data-ioffice="pager-pages"></ul>
+              </nav>
+              <div class="input-group input-group-sm" style="width: 140px">
+                <span class="input-group-text">Trang</span>
+                <input class="form-control" type="number" min="1" step="1" data-ioffice="page-jump" />
+                <button class="btn btn-outline-secondary" type="button" data-ioffice-action="page-jump">Đi</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="iofficeAccountModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Cấu hình tài khoản iOffice</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input class="form-control" data-ioffice="acc-username" />
+              </div>
+              <div class="mb-0">
+                <label class="form-label">Password</label>
+                <input class="form-control" data-ioffice="acc-password" type="password" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" type="button" data-ioffice-action="save-account">Lưu</button>
+              <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Đóng</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="iofficeLogModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Realtime log</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="border rounded p-2 mb-2 small" data-ioffice="sys-status">—</div>
+              <pre class="small mb-0" data-ioffice="log-area" style="background:#111;color:#0f0;padding:8px;min-height:260px"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="iofficeStartModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Tùy chọn chạy</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Chế độ chạy</label>
+                <div class="d-flex flex-wrap gap-3">
+                  <label class="form-check">
+                    <input class="form-check-input" type="radio" name="iofficeRunMode" value="update" checked />
+                    <span class="form-check-label">Cập nhật</span>
+                  </label>
+                  <label class="form-check">
+                    <input class="form-check-input" type="radio" name="iofficeRunMode" value="full" />
+                    <span class="form-check-label">Toàn bộ</span>
+                  </label>
+                  <label class="form-check">
+                    <input class="form-check-input" type="radio" name="iofficeRunMode" value="continue" />
+                    <span class="form-check-label">Chạy tiếp</span>
+                  </label>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mục văn bản cần xử lý</label>
+                <div class="d-flex flex-wrap gap-3">
+                  <label class="form-check">
+                    <input class="form-check-input" type="radio" name="iofficeRunCat" value="CHO_XU_LY" checked />
+                    <span class="form-check-label">Chờ xử lý</span>
+                  </label>
+                  <label class="form-check">
+                    <input class="form-check-input" type="radio" name="iofficeRunCat" value="XEM_DE_BIET" />
+                    <span class="form-check-label">Xem để biết</span>
+                  </label>
+                  <label class="form-check">
+                    <input class="form-check-input" type="radio" name="iofficeRunCat" value="DA_XU_LY" />
+                    <span class="form-check-label">Đã xử lý</span>
+                  </label>
+                </div>
+              </div>
+              <label class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" data-ioffice="run-headless" checked />
+                <span class="form-check-label">Chạy ẩn (headless)</span>
+              </label>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-success" type="button" data-ioffice-action="run-start">Bắt đầu</button>
+              <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Đóng</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="iofficeSummaryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div>
+                <h5 class="modal-title mb-0">Tóm tắt văn bản</h5>
+                <div class="small text-muted" data-ioffice="sum-meta">—</div>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row g-2 mb-2">
+                <div class="col-12 col-lg-6">
+                  <label class="form-label mb-1">Model (tùy chọn)</label>
+                  <input class="form-control form-control-sm" data-ioffice="sum-model" placeholder="Để trống = tự động" />
+                </div>
+                <div class="col-12 col-lg-6">
+                  <label class="form-label mb-1">Kiểu tóm tắt</label>
+                  <select class="form-select form-select-sm" data-ioffice="sum-prompt"></select>
+                </div>
+              </div>
+              <div class="border rounded p-2 mb-2" style="max-height: 240px; overflow: auto">
+                <div class="fw-semibold small mb-2">Chọn phần nội dung (nếu có)</div>
+                <div data-ioffice="sum-members" class="small text-muted">—</div>
+              </div>
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <div class="small">
+                  <span class="me-2" data-ioffice="sum-status">—</span>
+                  <span class="text-danger" data-ioffice="sum-error"></span>
+                </div>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button class="btn btn-outline-primary" type="button" data-ioffice-action="sum-run">
+                    <i class="bi bi-stars me-1"></i>Tóm tắt (AI)
+                  </button>
+                  <button class="btn btn-outline-secondary" type="button" data-ioffice-action="sum-read">
+                    <i class="bi bi-book me-1"></i>Đọc nội dung
+                  </button>
+                  <button class="btn btn-outline-secondary" type="button" data-ioffice-action="sum-audio">
+                    <i class="bi bi-headphones me-1"></i>Nghe
+                  </button>
+                  <button class="btn btn-outline-secondary" type="button" data-ioffice-action="open-prompt-manager">
+                    <i class="bi bi-sliders me-1"></i>Prompt
+                  </button>
+                  <a class="btn btn-outline-secondary" href="#" target="_blank" data-ioffice="sum-open">Mở</a>
+                </div>
+              </div>
+              <div class="mb-2" data-ioffice="sum-audio-area"></div>
+              <div class="border rounded p-2" style="white-space: pre-wrap" data-ioffice="sum-text">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="iofficeSummaryMoreModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div>
+                <h5 class="modal-title mb-0">Nội dung tóm tắt</h5>
+                <div class="small text-muted" data-ioffice="more-meta">—</div>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="border rounded p-2" style="white-space: pre-wrap" data-ioffice="more-text">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="iofficePromptManageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Quản lý prompt tóm tắt</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="d-flex flex-wrap gap-2 mb-3">
+                <button class="btn btn-success btn-sm" type="button" data-ioffice-action="prompt-add">
+                  <i class="bi bi-plus-lg me-1"></i>Thêm prompt
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-ioffice-action="prompt-reload">
+                  <i class="bi bi-arrow-clockwise me-1"></i>Tải lại
+                </button>
+              </div>
+              <div data-ioffice="prompt-list" class="small text-muted">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="iofficeReadDocModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div>
+                <h5 class="modal-title mb-0">Đọc nội dung văn bản</h5>
+                <div class="small text-muted" data-ioffice="read-meta">—</div>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <pre class="small mb-0 border rounded p-2" style="white-space: pre-wrap; background:#111; color:#eee; min-height: 360px" data-ioffice="read-text">—</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="iofficeCitationsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div>
+                <h5 class="modal-title mb-0">Nguồn trích</h5>
+                <div class="small text-muted" data-ioffice="cit-meta">—</div>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-12 col-lg-4">
+                  <div class="border rounded p-2" style="max-height: 520px; overflow: auto">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <div class="fw-semibold">Danh sách</div>
+                      <button class="btn btn-sm btn-outline-secondary" type="button" data-ioffice-action="cit-refresh">Làm mới</button>
+                    </div>
+                    <div data-ioffice="cit-list" class="small text-muted">—</div>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-8">
+                  <div class="border rounded p-2">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                      <div>
+                        <div class="fw-semibold" data-ioffice="cit-title">—</div>
+                        <div class="small text-muted" data-ioffice="cit-subtitle">—</div>
+                      </div>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-secondary" type="button" data-ioffice-action="cit-copy" data-format="md">Copy</button>
+                        <button class="btn btn-outline-secondary" type="button" data-ioffice-action="cit-copy" data-format="text">Copy (text)</button>
+                        <button class="btn btn-outline-secondary" type="button" data-ioffice-action="cit-open-summary">Tóm tắt</button>
+                        <a class="btn btn-outline-secondary" href="#" target="_blank" data-ioffice="cit-open-link">Mở văn bản</a>
+                      </div>
+                    </div>
+                    <div class="small text-muted mb-2" data-ioffice="cit-extra">—</div>
+                    <div class="small mb-0 border rounded p-2" style="white-space: pre-wrap; background:#111; color:#eee; min-height: 280px" data-ioffice="cit-context">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/bootstrap-page.js"></script>
+  </body>
+</html>
+

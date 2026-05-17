@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trợ lý AI Hiệu trưởng · EduAI Hub</title>
+  </head>
+  <body
+    data-page-title="Trợ lý AI Hiệu trưởng"
+    data-breadcrumb='[{"label":"Home","href":"/views/dashboard/index.html"},{"label":"Quản lý"},{"label":"Trợ lý AI Hiệu trưởng"}]'
+  >
+    <div id="page-content" data-page="ai-assistant">
+      <div class="row g-3" data-ai="layout-row">
+        <div class="col-12 col-lg-8" data-ai="request-col">
+          <div class="card">
+            <div class="card-header">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <h3 class="card-title mb-0">Yêu cầu</h3>
+                <div class="d-flex align-items-center gap-2">
+                  <button class="btn btn-sm btn-link p-0 text-decoration-none d-none" type="button" data-ai-action="request-toggle" title="Mở yêu cầu">
+                    <i class="bi bi-layout-sidebar-inset"></i>
+                  </button>
+                  <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="request-collapse" title="Thu/Mở">
+                    <i class="bi bi-chevron-bar-up" data-ai="request-collapse-icon"></i>
+                  </button>
+                  <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="request" title="Trợ giúp">
+                    <i class="bi bi-question-circle"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-ai-action="reset">Đặt lại</button>
+                </div>
+              </div>
+            </div>
+            <div class="card-body" data-ai="request-body">
+              <div class="row g-2 mb-2">
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Tìm văn bản iOffice</label>
+                  <div class="input-group">
+                    <input class="form-control" data-ai="ioffice-q" placeholder="Nhập từ khóa/ngữ nghĩa..." />
+                    <button class="btn btn-outline-secondary" type="button" data-ai-action="ioffice-search">Tìm</button>
+                    <button class="btn btn-link p-0 text-decoration-none px-2" type="button" data-ai-action="help" data-ai-help="ioffice" title="Trợ giúp">
+                      <i class="bi bi-question-circle"></i>
+                    </button>
+                  </div>
+                  <div class="mt-2 border rounded p-2" style="max-height: 180px; overflow:auto" data-ai="ioffice-results">
+                    <div class="text-muted small">Nhập từ khóa để tìm văn bản.</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label d-flex align-items-center justify-content-between">
+                    <span>Tải lên tài liệu mới</span>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="upload" title="Trợ giúp">
+                      <i class="bi bi-question-circle"></i>
+                    </button>
+                  </label>
+                  <input class="form-control" type="file" data-ai="upload-file" />
+                  <div class="mt-2 border rounded p-2" style="max-height: 180px; overflow:auto" data-ai="upload-list">
+                    <div class="text-muted small">Chưa có tài liệu tải lên.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-12">
+                  <label class="form-label d-flex align-items-center justify-content-between">
+                    <span>Tiêu đề</span>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="title" title="Trợ giúp">
+                      <i class="bi bi-question-circle"></i>
+                    </button>
+                  </label>
+                  <input class="form-control" data-ai="title" placeholder="Ví dụ: Thông báo họp, xử lý văn bản, kế hoạch..." />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label d-flex align-items-center justify-content-between">
+                    <span>Công việc</span>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="work" title="Trợ giúp">
+                      <i class="bi bi-question-circle"></i>
+                    </button>
+                  </label>
+                  <select class="form-select" data-ai="work-filter" multiple></select>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label d-flex align-items-center justify-content-between">
+                    <span>Văn bản đã chọn</span>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="docs" title="Trợ giúp">
+                      <i class="bi bi-question-circle"></i>
+                    </button>
+                  </label>
+                  <div class="border rounded p-2" style="min-height: 96px; max-height: 160px; overflow:auto" data-ai="doc-list">
+                    <div class="text-muted small">Chọn một mục trong Lịch sử quyết định.</div>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="my-3" />
+
+              <div class="row g-2">
+                <div class="col-12 col-md-6">
+                  <label class="form-label d-flex align-items-center justify-content-between">
+                    <span>Mẫu</span>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="preset" title="Trợ giúp">
+                      <i class="bi bi-question-circle"></i>
+                    </button>
+                  </label>
+                  <select class="form-select" data-ai="preset"></select>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label d-flex align-items-center justify-content-between">
+                    <span>Chế độ</span>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="mode" title="Trợ giúp">
+                      <i class="bi bi-question-circle"></i>
+                    </button>
+                  </label>
+                  <select class="form-select" data-ai="mode">
+                    <option value="preset" selected>Dùng mẫu</option>
+                    <option value="custom">Tự nhập</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label d-flex align-items-center justify-content-between">
+                    <span>Hướng dẫn</span>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="custom" title="Trợ giúp">
+                      <i class="bi bi-question-circle"></i>
+                    </button>
+                  </label>
+                  <textarea class="form-control" rows="3" data-ai="custom" placeholder="Nhập hướng dẫn..."></textarea>
+                </div>
+                <div class="col-12">
+                  <label class="form-label d-flex align-items-center justify-content-between">
+                    <span>Yêu cầu đầu ra</span>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="request_text" title="Trợ giúp">
+                      <i class="bi bi-question-circle"></i>
+                    </button>
+                  </label>
+                  <textarea class="form-control" rows="3" data-ai="request" placeholder="Nêu rõ bạn muốn tạo ra gì..."></textarea>
+                </div>
+                <div class="col-12 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                  <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="toggles" title="Trợ giúp">
+                    <i class="bi bi-question-circle"></i>
+                  </button>
+                  <label class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" data-ai="use-rag" checked />
+                    <span class="form-check-label">Dùng tri thức RAG</span>
+                  </label>
+                  <label class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" data-ai="use-web" />
+                    <span class="form-check-label">Web-search</span>
+                  </label>
+                  <label class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" data-ai="deep-research" />
+                    <span class="form-check-label">Nghiên cứu chuyên sâu</span>
+                  </label>
+                  <label class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" data-ai="make-podcast" />
+                    <span class="form-check-label">Podcast</span>
+                  </label>
+                  <div class="small text-muted" data-ai="meta">—</div>
+                </div>
+                <div class="col-12 d-flex justify-content-end gap-2">
+                  <button class="btn btn-primary" type="button" data-ai-action="save" disabled>Lưu</button>
+                  <button class="btn btn-success" type="button" data-ai-action="regenerate" disabled>Chạy trợ lý</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-4" data-ai="docview-col">
+          <div class="card">
+            <div class="card-header">
+              <div class="d-flex align-items-center justify-content-between gap-2">
+                <h3 class="card-title mb-0">Trợ lý AI</h3>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="d-none" data-ai="assistant-flow-icons">
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-flow="IdeaGen" title="IdeaGen">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-flow="RAG" title="RAG tương tác">
+                      <i class="bi bi-database"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-flow="Trích dẫn" title="Trích dẫn">
+                      <i class="bi bi-quote"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-flow="Tổng hợp" title="Tổng hợp">
+                      <i class="bi bi-file-earmark-richtext"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-flow="Web" title="Web-search">
+                      <i class="bi bi-globe"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-flow="Podcast" title="Podcast">
+                      <i class="bi bi-mic"></i>
+                    </button>
+                  </div>
+                  <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="assistant-copy" title="Copy toàn bộ">
+                    <i class="bi bi-clipboard"></i>
+                  </button>
+                  <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="docview-toggle" title="Phóng to/thu nhỏ">
+                    <i class="bi bi-arrows-fullscreen" data-ai="docview-toggle-icon"></i>
+                  </button>
+                  <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="assistant" title="Trợ giúp">
+                    <i class="bi bi-question-circle"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-12 col-lg-6">
+                  <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                    <div class="fw-semibold">Kết quả</div>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="output" title="Trợ giúp">
+                      <i class="bi bi-question-circle"></i>
+                    </button>
+                  </div>
+                  <div class="border rounded p-2" style="min-height: 220px; max-height: calc(100vh - 560px); overflow:auto">
+                    <div class="small text-muted mb-2" data-ai="output-notes"></div>
+                    <div class="small" data-ai="output" style="white-space: pre-wrap">—</div>
+                  </div>
+                  <div class="mt-3">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                      <div class="fw-semibold">Podcast</div>
+                      <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="podcast" title="Trợ giúp">
+                        <i class="bi bi-question-circle"></i>
+                      </button>
+                    </div>
+                    <div data-ai="podcast-panel" class="d-none">
+                      <div class="border rounded p-2" style="min-height: 96px; overflow:auto">
+                        <div class="small" data-ai="podcast" style="white-space: pre-wrap">—</div>
+                      </div>
+                      <div class="mt-2 d-flex flex-wrap gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-ai-action="podcast-speak" disabled>Nghe</button>
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-ai-action="podcast-stop" disabled>Dừng</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                  <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                    <div class="d-flex align-items-baseline gap-2">
+                      <div class="fw-semibold">Tiến trình AI</div>
+                      <div class="small text-muted fst-italic" data-ai="thinking-status">—</div>
+                    </div>
+                    <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="help" data-ai-help="assistant_flow" title="Trợ giúp">
+                      <i class="bi bi-question-circle"></i>
+                    </button>
+                  </div>
+                  <div class="border rounded p-2" style="min-height: 220px; max-height: calc(100vh - 560px); overflow:auto">
+                    <div class="small" data-ai="thinking">—</div>
+                    <div class="mt-2" data-ai="chat-log">
+                      <div class="text-muted small">Khi trợ lý cần xác nhận, câu hỏi sẽ hiện ở đây.</div>
+                    </div>
+                  </div>
+                  <div class="mt-2" data-ai="assistant-controls">
+                    <div class="input-group">
+                      <button class="btn btn-outline-secondary border-end-0" type="button" data-ai-action="chat-upload" title="Tải file đính kèm" style="border-right: 0;">
+                        <i class="bi bi-paperclip"></i>
+                      </button>
+                      <input type="file" class="d-none" data-ai="chat-file-input" multiple />
+                      <textarea class="form-control" rows="2" data-ai="chat-input" placeholder="Nhập phản hồi..."></textarea>
+                      <button class="btn btn-outline-primary" type="button" data-ai-action="chat-send">Gửi</button>
+                    </div>
+                    <div class="d-none" data-ai="chat-files-preview"></div>
+                    <div class="mt-2">
+                      <div class="d-flex flex-wrap align-items-center gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-ai="llm-selected">Mặc định</button>
+                        <div class="d-flex flex-wrap gap-2 d-none" data-ai="llm-taglist"></div>
+                      </div>
+                      <input type="hidden" data-ai="llm-choice" value="" />
+                    </div>
+                    <div class="small text-muted mt-1" data-ai="chat-hint">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header">
+          <div class="d-flex align-items-center justify-content-between gap-2">
+            <h3 class="card-title mb-0">Lịch sử quyết định</h3>
+            <button class="btn btn-sm btn-link p-0 text-decoration-none" type="button" data-ai-action="refresh" title="Tải lại">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th style="width: 160px">Thời gian</th>
+                  <th>Nội dung</th>
+                  <th style="width: 140px">Trạng thái</th>
+                  <th style="width: 140px" class="text-end">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody data-ai="history-tbody">
+                <tr>
+                  <td colspan="4" class="text-muted p-3">Đang tải...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/bootstrap-page.js"></script>
+  </body>
+</html>

@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dữ liệu RAG · EduAI Hub</title>
+  </head>
+  <body
+    data-page-title="Dữ liệu RAG"
+    data-breadcrumb='[{"label":"Home","href":"/views/dashboard/index.html"},{"label":"RAG & AI"},{"label":"Dữ liệu RAG"}]'
+  >
+    <div id="page-content" data-page="rag-data">
+      <div class="row">
+        <div class="col-lg-4">
+          <div class="info-box">
+            <span class="info-box-icon text-bg-primary"><i class="fas fa-building"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">MANAGEMENT</span>
+              <span class="info-box-number" data-rag="mgmt-items">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="info-box">
+            <span class="info-box-icon text-bg-success"><i class="fas fa-chalkboard"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">TEACHING</span>
+              <span class="info-box-number" data-rag="teaching-items">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="info-box">
+            <span class="info-box-icon text-bg-warning"><i class="fas fa-graduation-cap"></i></span>
+            <div class="info-box-content">
+              <span class="info-box-text">LEARNING</span>
+              <span class="info-box-number" data-rag="learning-items">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <h3 class="card-title mb-0">Thống kê mapping (MariaDB ↔ Qdrant)</h3>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-rag-action="refresh-stats">
+              <i class="bi bi-arrow-clockwise me-1"></i>Tải lại
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-12 col-lg-4">
+              <div class="border rounded p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="text-muted small">Tài liệu (rag_documents)</div>
+                  <div class="fw-semibold" data-rag="st-docs-total">—</div>
+                </div>
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="text-muted small">Chunks (rag_items)</div>
+                  <div class="fw-semibold" data-rag="st-items-total">—</div>
+                </div>
+                <div class="small text-muted mt-2" data-rag="st-checked-at">—</div>
+              </div>
+            </div>
+            <div class="col-12 col-lg-8">
+              <div class="border rounded p-3 h-100">
+                <div class="fw-semibold mb-2">Chunks theo collection</div>
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th>Collection</th>
+                        <th class="text-end">Chunks</th>
+                      </tr>
+                    </thead>
+                    <tbody data-rag="collections-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <h3 class="card-title mb-0">Quản lý tài liệu RAG</h3>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <button class="btn btn-sm btn-success" type="button" data-rag-action="open-create">
+                <i class="bi bi-plus-lg me-1"></i>Thêm
+              </button>
+              <button class="btn btn-sm btn-outline-secondary" type="button" data-rag-action="refresh-docs">
+                <i class="bi bi-arrow-clockwise me-1"></i>Tải lại
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-2 align-items-center mb-3">
+            <div class="col-12 col-lg-4">
+              <input class="form-control form-control-sm" data-rag="keyword" placeholder="Tìm theo title / original_id / source / type..." />
+            </div>
+            <div class="col-12 col-lg-2">
+              <select class="form-select form-select-sm" data-rag="source-filter">
+                <option value="">Nguồn (All)</option>
+              </select>
+            </div>
+            <div class="col-12 col-lg-2">
+              <select class="form-select form-select-sm" data-rag="domain">
+                <option value="">Domain (All)</option>
+                <option value="MANAGEMENT">MANAGEMENT</option>
+                <option value="TEACHING">TEACHING</option>
+                <option value="LEARNING">LEARNING</option>
+              </select>
+            </div>
+            <div class="col-12 col-lg-2">
+              <select class="form-select form-select-sm" data-rag="status">
+                <option value="">Status (All)</option>
+                <option value="PENDING">PENDING</option>
+                <option value="PROCESSING">PROCESSING</option>
+                <option value="READY">READY</option>
+                <option value="FAILED">FAILED</option>
+                <option value="DELETED">DELETED</option>
+              </select>
+            </div>
+            <div class="col-12 col-lg-2 text-lg-end">
+              <select class="form-select form-select-sm" data-rag="page-size" style="width: auto; display: inline-block">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th style="width: 80px">ID</th>
+                  <th style="width: 140px">Domain</th>
+                  <th style="min-width: 220px">Nguồn</th>
+                  <th style="min-width: 260px">Định danh</th>
+                  <th style="min-width: 320px">Tiêu đề</th>
+                  <th style="width: 140px">Status</th>
+                  <th style="min-width: 260px">Lỗi gần nhất</th>
+                  <th style="width: 120px" class="text-end">Chunks</th>
+                  <th style="width: 200px">Cập nhật</th>
+                  <th style="width: 180px" class="text-end">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody data-rag="docs-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
+            <div class="small text-muted" data-rag="pager-info">—</div>
+            <div class="btn-group btn-group-sm" role="group">
+              <button class="btn btn-outline-secondary" type="button" data-rag-action="prev-page">Trước</button>
+              <button class="btn btn-outline-secondary" type="button" data-rag-action="next-page">Sau</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <h3 class="card-title mb-0">Quản lý chunks RAG</h3>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <button class="btn btn-sm btn-outline-secondary" type="button" data-rag-action="refresh-items">
+                <i class="bi bi-arrow-clockwise me-1"></i>Tải lại
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-2 align-items-center mb-3">
+            <div class="col-12 col-lg-4">
+              <input class="form-control form-control-sm" data-rag="items-keyword" placeholder="Tìm theo title / original_id / point_id / collection..." />
+            </div>
+            <div class="col-12 col-lg-2">
+              <select class="form-select form-select-sm" data-rag="items-domain">
+                <option value="">Domain (All)</option>
+                <option value="MANAGEMENT">MANAGEMENT</option>
+                <option value="TEACHING">TEACHING</option>
+                <option value="LEARNING">LEARNING</option>
+              </select>
+            </div>
+            <div class="col-12 col-lg-2">
+              <select class="form-select form-select-sm" data-rag="items-status">
+                <option value="">Status (All)</option>
+                <option value="PENDING">PENDING</option>
+                <option value="EMBEDDING">EMBEDDING</option>
+                <option value="READY">READY</option>
+                <option value="FAILED">FAILED</option>
+                <option value="DELETED">DELETED</option>
+              </select>
+            </div>
+            <div class="col-12 col-lg-2">
+              <input class="form-control form-control-sm" data-rag="items-collection" placeholder="Qdrant collection (tùy chọn)" />
+            </div>
+            <div class="col-12 col-lg-2 text-lg-end">
+              <select class="form-select form-select-sm" data-rag="items-page-size" style="width: auto; display: inline-block">
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th style="width: 80px">ID</th>
+                  <th style="width: 90px">Doc</th>
+                  <th style="width: 140px">Domain</th>
+                  <th style="min-width: 220px">Collection</th>
+                  <th style="width: 90px" class="text-end">Chunk</th>
+                  <th style="width: 140px">Status</th>
+                  <th style="min-width: 320px">Point ID</th>
+                  <th style="min-width: 320px">Original ID</th>
+                  <th style="width: 200px">Cập nhật</th>
+                  <th style="width: 160px" class="text-end">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody data-rag="items-list-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
+            <div class="small text-muted" data-rag="items-pager-info">—</div>
+            <div class="btn-group btn-group-sm" role="group">
+              <button class="btn btn-outline-secondary" type="button" data-rag-action="items-prev-page">Trước</button>
+              <button class="btn btn-outline-secondary" type="button" data-rag-action="items-next-page">Sau</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    <div class="modal fade" id="ragDocModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div>
+              <h5 class="modal-title mb-0" data-rag="doc-modal-title">Tài liệu RAG</h5>
+              <div class="small text-muted" data-rag="doc-modal-meta">—</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-2" data-rag="manual-fields">
+              <div class="col-12 col-lg-4">
+                <label class="form-label mb-1">Domain</label>
+                <select class="form-select form-select-sm" data-rag-field="domain">
+                  <option value="MANAGEMENT">MANAGEMENT</option>
+                  <option value="TEACHING">TEACHING</option>
+                  <option value="LEARNING">LEARNING</option>
+                </select>
+              </div>
+              <div class="col-12 col-lg-4">
+                <label class="form-label mb-1">Source</label>
+                <div class="input-group input-group-sm">
+                  <input class="form-control" data-rag-field="source" list="ragSourcesDatalist" placeholder="IOFFICE" />
+                  <button class="btn btn-outline-secondary" type="button" data-rag-action="create-source" title="Tạo nguồn mới">+</button>
+                </div>
+              </div>
+              <div class="col-12 col-lg-4">
+                <label class="form-label mb-1">Type</label>
+                <input class="form-control form-control-sm" data-rag-field="type" placeholder="official_document_summary" />
+              </div>
+              <div class="col-12">
+                <label class="form-label mb-1">File tài liệu</label>
+                <input class="form-control form-control-sm" data-rag-field="file" type="file" />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" type="button" data-rag-action="save-doc">Lưu</button>
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="ragSourceModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title mb-0">Thêm Source</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-2">
+              <div class="col-12">
+                <label class="form-label mb-1">Domain</label>
+                <select class="form-select form-select-sm" data-rag-source="domain">
+                  <option value="MANAGEMENT">MANAGEMENT</option>
+                  <option value="TEACHING">TEACHING</option>
+                  <option value="LEARNING">LEARNING</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label mb-1">Tên Source</label>
+                <input class="form-control form-control-sm" data-rag-source="name" placeholder="Ví dụ: IOFFICE" />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" type="button" data-rag-action="save-source">Lưu</button>
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="ragItemsModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div>
+              <h5 class="modal-title mb-0">Chunks (rag_items)</h5>
+              <div class="small text-muted" data-rag="items-meta">—</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th style="width: 80px">#</th>
+                    <th style="width: 120px">Status</th>
+                    <th style="min-width: 340px">Point ID</th>
+                    <th style="min-width: 320px">Original ID</th>
+                    <th style="width: 200px">Embedded at</th>
+                    <th style="min-width: 320px">Last error</th>
+                  </tr>
+                </thead>
+                <tbody data-rag="items-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="ragItemModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div>
+              <h5 class="modal-title mb-0">Sửa chunk RAG</h5>
+              <div class="small text-muted" data-rag="item-modal-meta">—</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-2">
+              <div class="col-12 col-lg-6">
+                <label class="form-label mb-1">Status</label>
+                <select class="form-select form-select-sm" data-rag-item-field="status">
+                  <option value="PENDING">PENDING</option>
+                  <option value="EMBEDDING">EMBEDDING</option>
+                  <option value="READY">READY</option>
+                  <option value="FAILED">FAILED</option>
+                  <option value="DELETED">DELETED</option>
+                </select>
+              </div>
+              <div class="col-12 col-lg-6">
+                <label class="form-label mb-1">Chunk tokens</label>
+                <input class="form-control form-control-sm" type="number" data-rag-item-field="chunk_tokens" placeholder="(tùy chọn)" />
+              </div>
+              <div class="col-12">
+                <label class="form-label mb-1">Last error</label>
+                <textarea class="form-control form-control-sm" rows="4" data-rag-item-field="last_error" placeholder="(tùy chọn)"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" type="button" data-rag-action="save-item">Lưu</button>
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <datalist id="ragSourcesDatalist"></datalist>
+    </div>
+
+    <script type="module" src="/src/bootstrap-page.js"></script>
+  </body>
+</html>
