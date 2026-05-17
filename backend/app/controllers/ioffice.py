@@ -1,3 +1,4 @@
+import html
 import os
 import threading
 import urllib.parse
@@ -76,6 +77,13 @@ def _sel_optional(col: str, alias: str | None = None) -> str:
   if col in cols:
     return f"{col} AS {alias}" if alias else col
   return f"NULL AS {alias or col}"
+
+
+def _content_disposition(disposition: str, filename: str) -> str:
+  safe_name = Path(filename or "file").name or "file"
+  ascii_name = "".join(ch if 32 <= ord(ch) < 127 and ch not in '\\";%' else "_" for ch in safe_name).strip("._ ") or "file"
+  encoded = urllib.parse.quote(safe_name, safe="")
+  return f"{disposition}; filename=\"{ascii_name}\"; filename*=UTF-8''{encoded}"
 
 
 class AccountUpsert(BaseModel):
@@ -1752,9 +1760,8 @@ def view_file(filepath: str):
     media_type = "text/plain; charset=utf-8"
   return FileResponse(
     path=str(full),
-    filename=full.name,
     media_type=media_type,
-    headers={"Content-Disposition": f'inline; filename=\"{full.name}\"', "X-Content-Type-Options": "nosniff"},
+    headers={"Content-Disposition": _content_disposition("inline", full.name), "X-Content-Type-Options": "nosniff"},
   )
 
 
@@ -1767,7 +1774,7 @@ def download_file(filepath: str):
     raise HTTPException(status_code=403, detail="forbidden")
   if not full.exists():
     raise HTTPException(status_code=404, detail="not_found")
-  return FileResponse(path=str(full), filename=full.name, media_type="application/octet-stream", headers={"Content-Disposition": f'attachment; filename=\"{full.name}\"'})
+  return FileResponse(path=str(full), media_type="application/octet-stream", headers={"Content-Disposition": _content_disposition("attachment", full.name)})
 
 
 @router.get("/download-audio/{filepath:path}")
@@ -1781,7 +1788,7 @@ def download_audio(filepath: str):
     raise HTTPException(status_code=404, detail="not_found")
   low = full.name.lower()
   media_type = "audio/mpeg" if low.endswith(".mp3") else "audio/wav" if low.endswith(".wav") else "application/octet-stream"
-  return FileResponse(path=str(full), filename=full.name, media_type=media_type, headers={"Content-Disposition": f'inline; filename=\"{full.name}\"'})
+  return FileResponse(path=str(full), media_type=media_type, headers={"Content-Disposition": _content_disposition("inline", full.name)})
 
 
 @router.get("/view-zip")
@@ -1828,17 +1835,19 @@ def view_zip(path: str | None = None, show_list: int | None = None):
           fname = os.path.basename(m)
           if not fname:
             continue
-          target = session_dir / fname
+          safe_fname = Path(fname).name
+          target = session_dir / safe_fname
           with open(target, "wb") as f:
             f.write(z.read(m))
-          extracted.append(fname)
+          extracted.append(safe_fname)
       else:
         chosen = _pick_best(members)
         fname = os.path.basename(chosen) or os.path.basename(members[0]) or "file"
-        target = session_dir / fname
+        safe_fname = Path(fname).name
+        target = session_dir / safe_fname
         with open(target, "wb") as f:
           f.write(z.read(chosen))
-        extracted.append(fname)
+        extracted.append(safe_fname)
   except zipfile.BadZipFile:
     return PlainTextResponse("Invalid ZIP file", status_code=400)
 
@@ -1854,18 +1863,19 @@ def view_zip(path: str | None = None, show_list: int | None = None):
   for fn in extracted:
     rel = f"temp/{session_dir.name}/{fn}"
     href = f"/api/ioffice/view-file/{urllib.parse.quote(rel, safe='/')}"
-    links_html += f'<li><a target="_blank" href="{href}">{fn}</a></li>'
+    links_html += f'<li><a target="_blank" href="{html.escape(href, quote=True)}">{html.escape(fn)}</a></li>'
+  title = html.escape(full.name)
 
   page = f"""
   <!doctype html>
   <html>
   <head>
     <meta charset="utf-8">
-    <title>Contents of {full.name}</title>
+    <title>Contents of {title}</title>
     <style>body{{font-family:sans-serif;padding:12px}}ul{{line-height:1.6}}</style>
   </head>
   <body>
-    <h3>Danh sách file trong: {full.name}</h3>
+    <h3>Danh sách file trong: {title}</h3>
     <p>Click tên file để mở trong tab mới.</p>
     <ul>
       {links_html}
