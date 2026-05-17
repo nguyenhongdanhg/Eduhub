@@ -4,6 +4,7 @@ setlocal EnableExtensions
 
 set "ROOT=%~dp0"
 set "PORT=3000"
+set "PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 if not "%EDUAI_PORT%"=="" set "PORT=%EDUAI_PORT%"
 
 echo ==========================================
@@ -37,7 +38,11 @@ if errorlevel 1 (
 
 echo.
 echo [2/7] Dung backend tren port %PORT% neu dang chay...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Get-NetTCPConnection -LocalPort %PORT% -State Listen -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force; Write-Host ('Da dung process PID ' + $_) } } catch { Write-Host 'Khong tim thay backend dang chay tren port %PORT%.' }"
+if exist "%PS%" (
+  "%PS%" -NoProfile -ExecutionPolicy Bypass -Command "try { Get-NetTCPConnection -LocalPort %PORT% -State Listen -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force; Write-Host ('Da dung process PID ' + $_) } } catch { Write-Host 'Khong tim thay backend dang chay tren port %PORT%.' }"
+) else (
+  echo [CANH BAO] Khong tim thay PowerShell, bo qua buoc dung backend theo port.
+)
 
 echo.
 echo [3/7] Dung va xoa container/volume Docker Compose cua du an...
@@ -66,7 +71,7 @@ if errorlevel 1 (
 
 echo.
 echo [6/7] Doi MariaDB va Qdrant san sang...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ok=$false; for($i=1;$i -le 40;$i++){ $m=(Test-NetConnection 127.0.0.1 -Port 3307 -WarningAction SilentlyContinue).TcpTestSucceeded; $q=(Test-NetConnection 127.0.0.1 -Port 6333 -WarningAction SilentlyContinue).TcpTestSucceeded; if($m -and $q){ $ok=$true; break }; Write-Host ('Dang doi dich vu... MariaDB=' + $m + ' Qdrant=' + $q + ' lan ' + $i + '/40'); Start-Sleep -Seconds 3 }; if(-not $ok){ exit 1 }"
+"%PS%" -NoProfile -ExecutionPolicy Bypass -Command "$ok=$false; for($i=1;$i -le 40;$i++){ $m=(Test-NetConnection 127.0.0.1 -Port 3307 -WarningAction SilentlyContinue).TcpTestSucceeded; $q=(Test-NetConnection 127.0.0.1 -Port 6333 -WarningAction SilentlyContinue).TcpTestSucceeded; if($m -and $q){ $ok=$true; break }; Write-Host ('Dang doi dich vu... MariaDB=' + $m + ' Qdrant=' + $q + ' lan ' + $i + '/40'); Start-Sleep -Seconds 3 }; if(-not $ok){ exit 1 }"
 if errorlevel 1 (
   echo [LOI] MariaDB/Qdrant chua san sang sau khi cho.
   docker compose ps
@@ -75,26 +80,23 @@ if errorlevel 1 (
 )
 
 echo.
-echo [7/7] Import database schema va seed neu co mysql client...
-where mysql >nul 2>&1
+echo [7/7] Import database schema va seed...
+if not exist "%PS%" (
+  echo [LOI] Khong tim thay Windows PowerShell tai: %PS%
+  pause
+  exit /b 1
+)
+"%PS%" -NoProfile -ExecutionPolicy Bypass -Command "Get-Content -Path '%ROOT%database\schema.sql' -Encoding UTF8 | docker compose exec -T mariadb mariadb -uroot -proot eduai_hub"
 if errorlevel 1 (
-  echo [CANH BAO] Khong tim thay mysql client tren may host.
-  echo Se import bang mysql ben trong container MariaDB.
-  docker compose exec -T mariadb mariadb -uroot -proot eduai_hub < "%ROOT%database\schema.sql"
-  if errorlevel 1 (
-    echo [LOI] Import schema bang container that bai.
-    pause
-    exit /b 1
-  )
-  docker compose exec -T mariadb mariadb -uroot -proot eduai_hub < "%ROOT%database\seed.sql"
-) else (
-  mysql -h 127.0.0.1 -P 3307 -u root -proot eduai_hub < "%ROOT%database\schema.sql"
-  if errorlevel 1 (
-    echo [LOI] Import schema that bai.
-    pause
-    exit /b 1
-  )
-  mysql -h 127.0.0.1 -P 3307 -u root -proot eduai_hub < "%ROOT%database\seed.sql"
+  echo [LOI] Import schema that bai.
+  pause
+  exit /b 1
+)
+"%PS%" -NoProfile -ExecutionPolicy Bypass -Command "Get-Content -Path '%ROOT%database\seed.sql' -Encoding UTF8 | docker compose exec -T mariadb mariadb -uroot -proot eduai_hub"
+if errorlevel 1 (
+  echo [LOI] Import seed that bai.
+  pause
+  exit /b 1
 )
 
 echo.

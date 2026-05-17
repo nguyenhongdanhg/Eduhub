@@ -7,6 +7,7 @@ set "BACKEND_DIR=%ROOT%backend"
 set "FRONTEND_DIR=%ROOT%frontend"
 set "VENV_DIR=%ROOT%.venv"
 set "PORT=3000"
+set "PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 
 if not "%EDUAI_PORT%"=="" set "PORT=%EDUAI_PORT%"
 
@@ -16,6 +17,13 @@ echo ==========================================
 echo Thu muc du an: %ROOT%
 echo Cong ung dung: %PORT%
 echo.
+
+if not exist "%PS%" (
+  echo [LOI] Khong tim thay Windows PowerShell tai: %PS%
+  echo Hay kiem tra Windows PowerShell hoac sua bien PS trong start.bat.
+  pause
+  exit /b 1
+)
 
 cd /d "%ROOT%"
 
@@ -72,7 +80,7 @@ if errorlevel 1 (
 
 echo.
 echo [5/9] Doi MariaDB san sang va dam bao schema...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ok=$false; for($i=1;$i -le 40;$i++){ $m=(Test-NetConnection 127.0.0.1 -Port 3307 -WarningAction SilentlyContinue).TcpTestSucceeded; if($m){ $ok=$true; break }; Write-Host ('Dang doi MariaDB... lan ' + $i + '/40'); Start-Sleep -Seconds 3 }; if(-not $ok){ exit 1 }"
+"%PS%" -NoProfile -ExecutionPolicy Bypass -Command "$ok=$false; for($i=1;$i -le 40;$i++){ $m=(Test-NetConnection 127.0.0.1 -Port 3307 -WarningAction SilentlyContinue).TcpTestSucceeded; if($m){ $ok=$true; break }; Write-Host ('Dang doi MariaDB... lan ' + $i + '/40'); Start-Sleep -Seconds 3 }; if(-not $ok){ exit 1 }"
 if errorlevel 1 (
   echo [LOI] MariaDB chua san sang sau khi cho.
   pause
@@ -81,13 +89,13 @@ if errorlevel 1 (
 docker compose exec -T mariadb mariadb -uroot -proot eduai_hub -e "SELECT 1 FROM ioffice_documents LIMIT 1" >nul 2>&1
 if errorlevel 1 (
   echo Chua co schema day du, dang import database\schema.sql va database\seed.sql...
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-Content -Path '%ROOT%database\schema.sql' -Encoding UTF8 | docker compose exec -T mariadb mariadb -uroot -proot eduai_hub"
+  "%PS%" -NoProfile -ExecutionPolicy Bypass -Command "Get-Content -Path '%ROOT%database\schema.sql' -Encoding UTF8 | docker compose exec -T mariadb mariadb -uroot -proot eduai_hub"
   if errorlevel 1 (
     echo [LOI] Import database\schema.sql that bai.
     pause
     exit /b 1
   )
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-Content -Path '%ROOT%database\seed.sql' -Encoding UTF8 | docker compose exec -T mariadb mariadb -uroot -proot eduai_hub"
+  "%PS%" -NoProfile -ExecutionPolicy Bypass -Command "Get-Content -Path '%ROOT%database\seed.sql' -Encoding UTF8 | docker compose exec -T mariadb mariadb -uroot -proot eduai_hub"
   if errorlevel 1 (
     echo [LOI] Import database\seed.sql that bai.
     pause
@@ -107,7 +115,7 @@ if not exist "%VENV_DIR%\Scripts\python.exe" (
 )
 
 echo.
-echo [6/8] Cai dat backend dependencies...
+echo [7/9] Cai dat backend dependencies...
 "%VENV_DIR%\Scripts\python.exe" -m pip install --upgrade pip
 if errorlevel 1 (
   echo [LOI] Khong nang cap duoc pip.

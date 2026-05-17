@@ -4,6 +4,7 @@ setlocal EnableExtensions
 
 set "ROOT=%~dp0"
 set "PORT=3000"
+set "PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 if not "%EDUAI_PORT%"=="" set "PORT=%EDUAI_PORT%"
 
 echo ==========================================
@@ -13,7 +14,11 @@ echo Cong ung dung: %PORT%
 echo.
 
 echo [1/2] Dung backend neu dang nghe tren port %PORT%...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Get-NetTCPConnection -LocalPort %PORT% -State Listen -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force; Write-Host ('Da dung process PID ' + $_) } } catch { Write-Host 'Khong tim thay backend dang chay tren port %PORT%.' }"
+if exist "%PS%" (
+  "%PS%" -NoProfile -ExecutionPolicy Bypass -Command "try { Get-NetTCPConnection -LocalPort %PORT% -State Listen -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force; Write-Host ('Da dung process PID ' + $_) } } catch { Write-Host 'Khong tim thay backend dang chay tren port %PORT%.' }"
+) else (
+  echo [CANH BAO] Khong tim thay PowerShell, bo qua buoc dung backend theo port.
+)
 
 echo.
 echo [2/2] Dung MariaDB va Qdrant Docker...
