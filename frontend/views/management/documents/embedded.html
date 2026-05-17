@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>iOffice Fetcher</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+      body {
+        padding: 16px;
+      }
+      #logArea {
+        height: 320px;
+        background: #111;
+        color: #0f0;
+        padding: 8px;
+        overflow: auto;
+        font-family: monospace;
+      }
+      .control-icon {
+        font-size: 18px;
+        cursor: pointer;
+        margin-left: 8px;
+      }
+      .nowrap {
+        white-space: nowrap;
+      }
+      .filter-row {
+        margin-bottom: 12px;
+      }
+      .dt-center {
+        text-align: center;
+      }
+      .trich {
+        white-space: normal;
+      }
+      .big-btn {
+        font-size: 18px;
+      }
+      #tblDocs_filter {
+        display: none !important;
+      }
+      @media (max-width: 767px) {
+        .header-actions {
+          text-align: right;
+        }
+        .header-actions .big-btn {
+          display: inline-block;
+          width: auto;
+          margin: 6px 6px;
+          padding: 6px 10px;
+          font-size: 16px;
+        }
+        .btn .btn-text {
+          display: none;
+        }
+        .btn i {
+          margin-right: 0 !important;
+        }
+      }
+      .compact-buttons .btn .btn-text {
+        display: none;
+      }
+      .compact-buttons .btn i {
+        margin-right: 0 !important;
+      }
+      #vbTabs {
+        margin-right: 10px;
+      }
+      #statsBox {
+        text-align: right;
+      }
+      #statsBox {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background: transparent;
+        text-align: right;
+      }
+      #runStatus {
+        display: none;
+        font-weight: 400;
+        color: #cc0000;
+        text-align: center;
+        text-transform: none;
+      }
+      .runStatusRunning {
+        display: block;
+      }
+      #tblDocs {
+        table-layout: fixed !important;
+        width: 100% !important;
+      }
+      #tblDocs th:nth-child(6),
+      #tblDocs td:nth-child(6) {
+        width: 120px !important;
+        min-width: 120px !important;
+        max-width: 120px !important;
+        overflow-x: hidden;
+        overflow-y: visible;
+      }
+      #tblDocs td:nth-child(6) .work-cell {
+        max-width: 120px;
+        overflow-x: hidden;
+        overflow-y: visible;
+        white-space: normal;
+      }
+      #tblDocs td:nth-child(6) .work-tags {
+        white-space: normal;
+      }
+      #tblDocs td:nth-child(6) .work-tag {
+        white-space: normal;
+        word-break: break-word;
+      }
+      .filter-row .btn {
+        padding: 6px 10px;
+      }
+      .filter-row .btn i {
+        margin-right: 0 !important;
+      }
+      th.bulk-actions {
+        position: relative;
+      }
+      th.bulk-actions .bulk-del {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #cc0000;
+      }
+      .icon-only {
+        padding: 6px 8px;
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        text-decoration: none !important;
+      }
+      .icon-only:hover {
+        background: #f5f5f5 !important;
+      }
+      .icon-only:focus {
+        outline: 0 !important;
+      }
+      .ioffice-topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+        margin-bottom: 8px;
+      }
+      .ioffice-tabs {
+        flex: 0 1 440px;
+        min-width: 320px;
+      }
+      .ioffice-tabs .nav {
+        display: flex;
+        flex-wrap: nowrap;
+        margin-bottom: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+      .ioffice-tabs .nav > li {
+        float: none;
+        white-space: nowrap;
+      }
+      .ioffice-tabs .nav > li > a {
+        padding: 6px 10px;
+      }
+      .ioffice-stats {
+        flex: 1 1 auto;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .ioffice-actions {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        text-align: right;
+      }
+      #dtLengthMount #tblDocs_length {
+        margin: 0;
+      }
+      #dtLengthMount #tblDocs_length label {
+        margin: 0;
+        font-weight: normal;
+      }
+      #dtLengthMount #tblDocs_length select {
+        width: auto;
+        display: inline-block;
+      }
+      @media (max-width: 991px) {
+        .ioffice-topbar {
+          flex-wrap: wrap;
+        }
+        .ioffice-tabs {
+          flex: 1 1 100%;
+          min-width: 0;
+        }
+        .ioffice-stats {
+          flex: 1 1 auto;
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+  <body class="container-fluid">
+    <div class="ioffice-topbar">
+      <div id="vbTabs" class="ioffice-tabs">
+        <ul class="nav nav-tabs">
+          <li class="active"><a href="#" class="vbTab" data-tab="ALL">Tất cả</a></li>
+          <li><a href="#" class="vbTab" data-tab="CHO_XU_LY">Chờ xử lý</a></li>
+          <li><a href="#" class="vbTab" data-tab="XEM_DE_BIET">Xem để biết</a></li>
+          <li><a href="#" class="vbTab" data-tab="DA_XU_LY">Đã xử lý</a></li>
+        </ul>
+      </div>
+
+      <div id="statsCol" class="ioffice-stats">
+        <div id="statsBox">
+          <a id="st_total" href="#" style="cursor: pointer">Tổng: 0</a> | <a id="st_xlc" href="#" style="cursor: pointer">XLC: 0</a> |
+          <a id="st_ph" href="#" style="cursor: pointer">PH: 0</a> | <a id="st_other" href="#" style="cursor: pointer">Khác: 0</a> |
+          <span id="st_fail" style="color: red">Lỗi: 0</span>
+        </div>
+      </div>
+
+      <div class="header-actions ioffice-actions">
+        <button id="btnFetchIcon" class="btn btn-link big-btn icon-only" title="Chạy/Dừng">
+          <i class="fa fa-play-circle"></i>
+        </button>
+
+        <button id="btnLogIcon" class="btn btn-link big-btn icon-only" title="Xem log">
+          <i class="fa fa-terminal"></i>
+        </button>
+
+        <button id="acctIcon" class="btn btn-link big-btn icon-only" title="Tài khoản">
+          <i class="fa fa-user-circle"></i>
+        </button>
+
+        <button id="btnRefresh" class="btn btn-link big-btn icon-only" title="Tải lại trang">
+          <i class="fa fa-rotate-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="row filter-row" style="margin-top: 12px">
+      <div class="col-md-2">
+        <select id="filterRole" class="form-control" style="width: 100%">
+          <option value="">Vai trò (All)</option>
+          <option value="XLC">XLC</option>
+          <option value="PH">PH</option>
+          <option value="OTHER">OTHER</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <input id="txtSearch" class="form-control" placeholder="Tìm kiếm theo từ khóa..." style="width: 100%" />
+      </div>
+
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-addon" style="padding: 6px 10px" title="Tự động phân tích khi tìm kiếm">
+            <input type="checkbox" id="chkAutoSummary" value="1" />
+          </span>
+          <input id="txtSemanticSearch" class="form-control" placeholder="Tìm kiếm theo ngữ nghĩa bằng AI..." disabled />
+          <span class="input-group-btn">
+            <button class="btn btn-info" id="btnTriggerSemantic" disabled><i class="fa fa-magic"></i></button>
+          </span>
+        </div>
+      </div>
+
+      <div class="col-md-2 text-right" id="dtLengthMount"></div>
+    </div>
+
+    <table id="tblDocs" class="display" style="width: 100%">
+      <thead>
+        <tr>
+          <th class="bulk-actions">#</th>
+          <th>Số ký hiệu</th>
+          <th>Trích yếu</th>
+          <th>Tóm tắt</th>
+          <th>Thời gian</th>
+          <th>Công việc</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div id="logModal" class="modal fade">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header"><h4>Realtime log & System Status</h4></div>
+          <div class="modal-body">
+            <div id="sysStatusArea" style="margin-bottom: 10px; border: 1px solid #444"></div>
+            <pre id="logArea"></pre>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-default" data-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="acctModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header"><h4>Cấu hình tài khoản iOffice</h4></div>
+          <div class="modal-body">
+            <form id="cfgForm">
+              <div class="form-group">
+                <label>Tên đăng nhập</label>
+                <input id="username" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Mật khẩu</label>
+                <input id="password" type="password" class="form-control" />
+              </div>
+              <button id="saveCfg" class="btn btn-primary">Lưu</button>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-default" data-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="taskModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header"><h4>Nội dung</h4></div>
+          <div class="modal-body">
+            <div id="taskContent" style="white-space: pre-wrap"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-default" data-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="startModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header"><h4>Tùy chọn chạy</h4></div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Chế độ chạy</label>
+              <div>
+                <label class="radio-inline"><input type="radio" name="runMode" value="update" checked /> Cập nhật</label>
+                <label class="radio-inline"><input type="radio" name="runMode" value="full" /> Toàn bộ</label>
+                <label class="radio-inline"><input type="radio" name="runMode" value="continue" /> Chạy tiếp</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Mục văn bản cần xử lý</label>
+              <div>
+                <label class="radio-inline"><input type="radio" name="runCatRad" value="CHO_XU_LY" checked /> Chờ xử lý</label>
+                <label class="radio-inline"><input type="radio" name="runCatRad" value="XEM_DE_BIET" /> Xem để biết</label>
+                <label class="radio-inline"><input type="radio" name="runCatRad" value="DA_XU_LY" /> Đã xử lý</label>
+              </div>
+            </div>
+            <label><input type="checkbox" id="optHeadless" checked /> Chạy ẩn (headless)</label>
+          </div>
+          <div class="modal-footer">
+            <button id="btnBeginStart" class="btn btn-success">Bắt đầu</button>
+            <button class="btn btn-default" data-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="summaryModal" class="modal fade">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header"><h4>Tóm tắt văn bản bằng AI</h4></div>
+          <div class="modal-body">
+            <div id="summaryInfo" style="margin-bottom: 8px"></div>
+            <div id="memberList" style="max-height: 240px; overflow: auto"></div>
+            <div style="margin: 8px 0">
+              <label>Model:</label>
+              <select id="modelSelect" class="form-control">
+                <option value="">Tự động</option>
+              </select>
+            </div>
+            <div style="margin: 8px 0">
+              <label>Kiểu tóm tắt:</label>
+              <select id="promptSelect" class="form-control"></select>
+            </div>
+            <div style="margin-bottom: 8px">
+              <button id="btnStartAI" class="btn btn-primary">Bắt đầu tóm tắt</button>
+              <button id="btnReadDoc" class="btn btn-default">Đọc nội dung</button>
+              <button id="btnManagePrompts" class="btn btn-default">Quản lý prompt</button>
+            </div>
+            <div id="aiMeta" style="margin-top: 8px; color: #777"></div>
+            <div id="aiStatus" style="margin-top: 10px; white-space: pre-wrap"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-default" data-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="promptManageModal" class="modal fade">
+      <div class="modal-dialog" style="width: 980px; max-width: 95vw">
+        <div class="modal-content">
+          <div class="modal-header"><h4>Quản lý prompt tóm tắt</h4></div>
+          <div class="modal-body">
+            <div style="margin-bottom:8px">
+              <button id="btnAddPromptPreset" class="btn btn-success">Thêm prompt</button>
+              <button id="btnReloadPromptPresets" class="btn btn-default">Tải lại</button>
+            </div>
+            <div id="promptPresetList" style="max-height: 65vh; overflow:auto"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-default" data-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="readDocModal" class="modal fade">
+      <div class="modal-dialog" style="width: 920px; max-width: 95vw">
+        <div class="modal-content">
+          <div class="modal-header"><h4>Đọc nội dung văn bản</h4></div>
+          <div class="modal-body">
+            <div id="readDocInfo" style="margin-bottom: 8px"></div>
+            <pre id="readDocText" style="white-space: pre-wrap; max-height: 65vh; overflow: auto; background:#111; color:#eee; padding:12px"></pre>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-default" data-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="deleteDocModal" class="modal fade">
+      <div class="modal-dialog" style="width: 520px; max-width: 95vw">
+        <div class="modal-content">
+          <div class="modal-header"><h4>Xác nhận xóa</h4></div>
+          <div class="modal-body">
+            Bạn có chắc muốn xóa văn bản <strong id="deleteDocName"></strong>?
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-default" data-dismiss="modal">Hủy</button>
+            <button id="btnConfirmDeleteDoc" class="btn btn-danger">Xóa</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="/static/ioffice-ui.js"></script>
+  </body>
+</html>
+

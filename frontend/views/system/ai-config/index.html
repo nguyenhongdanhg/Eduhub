@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cấu hình AI & Thống kê · EduAI Hub</title>
+  </head>
+  <body
+    data-page-title="Cấu hình AI & Thống kê"
+    data-breadcrumb='[{"label":"Trang chủ","href":"/views/dashboard/index.html"},{"label":"Hệ thống"},{"label":"Cấu hình AI"}]'
+  >
+    <div id="page-content" data-page="system-ai-config">
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-primary card-outline card-tabs">
+            <div class="card-header p-0 pt-1 border-bottom-0">
+              <ul class="nav nav-tabs" id="aiConfigTabs" role="tablist">
+                <li class="nav-item">
+                  <a class="nav-link active" id="tabs-api-keys-tab" data-bs-toggle="pill" href="#tabs-api-keys" role="tab" aria-controls="tabs-api-keys" aria-selected="true">
+                    <i class="fas fa-key me-1"></i>API Keys
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="tabs-stats-tab" data-bs-toggle="pill" href="#tabs-stats" role="tab" aria-controls="tabs-stats" aria-selected="false">
+                    <i class="fas fa-chart-bar me-1"></i>Thống kê sử dụng
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div class="card-body">
+              <div class="tab-content" id="aiConfigTabsContent">
+                <!-- Tab API Keys -->
+                <div class="tab-pane fade show active" id="tabs-api-keys" role="tabpanel" aria-labelledby="tabs-api-keys-tab">
+                  <div class="row" id="api-keys-container">
+                    <!-- Sẽ được render bởi JS -->
+                    <div class="col-12 text-center py-5">
+                      <div class="spinner-border text-primary" role="status"></div>
+                      <div class="mt-2 text-muted">Đang tải cấu hình...</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tab Thống kê -->
+                <div class="tab-pane fade" id="tabs-stats" role="tabpanel" aria-labelledby="tabs-stats-tab">
+                  <div class="row g-3">
+                    <!-- Info Boxes -->
+                    <div class="col-12 col-md-4">
+                      <div class="info-box shadow-none border">
+                        <span class="info-box-icon text-bg-primary"><i class="fas fa-cloud-upload-alt"></i></span>
+                        <div class="info-box-content">
+                          <span class="info-box-text">Tổng Input Tokens</span>
+                          <span class="info-box-number" data-stats="total-prompt">—</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <div class="info-box shadow-none border">
+                        <span class="info-box-icon text-bg-success"><i class="fas fa-cloud-download-alt"></i></span>
+                        <div class="info-box-content">
+                          <span class="info-box-text">Tổng Output Tokens</span>
+                          <span class="info-box-number" data-stats="total-completion">—</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <div class="info-box shadow-none border">
+                        <span class="info-box-icon text-bg-info"><i class="fas fa-exchange-alt"></i></span>
+                        <div class="info-box-content">
+                          <span class="info-box-text">Tổng số yêu cầu</span>
+                          <span class="info-box-number" data-stats="total-requests">—</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="col-lg-8">
+                      <div class="card shadow-none border h-100">
+                        <div class="card-header border-0">
+                          <h3 class="card-title fw-bold">Xu hướng sử dụng (30 ngày qua)</h3>
+                        </div>
+                        <div class="card-body">
+                          <canvas id="tokenUsageChart" style="min-height: 300px; height: 300px; max-height: 300px; max-width: 100%;"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-lg-4">
+                      <div class="card shadow-none border h-100">
+                        <div class="card-header border-0">
+                          <h3 class="card-title fw-bold">Phân bổ theo nghiệp vụ</h3>
+                        </div>
+                        <div class="card-body">
+                          <canvas id="contentTypeChart" style="min-height: 300px; height: 300px; max-height: 300px; max-width: 100%;"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12 col-lg-8">
+                      <div class="card shadow-none border">
+                        <div class="card-header border-0 d-flex align-items-center justify-content-between">
+                          <h3 class="card-title fw-bold mb-0">Chi phí ước tính theo nhà cung cấp (30 ngày)</h3>
+                          <button type="button" class="btn btn-sm btn-outline-primary" id="btn-edit-token-prices">
+                            <i class="fas fa-sliders-h me-1"></i>Bảng giá
+                          </button>
+                        </div>
+                        <div class="card-body">
+                          <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-6">
+                              <div class="info-box shadow-none border">
+                                <span class="info-box-icon text-bg-warning"><i class="fas fa-dollar-sign"></i></span>
+                                <div class="info-box-content">
+                                  <span class="info-box-text">Tổng chi phí (USD)</span>
+                                  <span class="info-box-number" data-stats="total-cost-usd">—</span>
+                                  <span class="info-box-text small text-muted">Tỷ giá: <span data-stats="usd-to-vnd">—</span> VND/USD</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                              <div class="info-box shadow-none border">
+                                <span class="info-box-icon text-bg-danger"><i class="fas fa-coins"></i></span>
+                                <div class="info-box-content">
+                                  <span class="info-box-text">Tổng chi phí (VND)</span>
+                                  <span class="info-box-number" data-stats="total-cost-vnd">—</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="table-responsive">
+                            <table class="table table-sm table-striped align-middle mb-0">
+                              <thead>
+                                <tr>
+                                  <th>Provider</th>
+                                  <th class="text-end">Requests</th>
+                                  <th class="text-end">Input</th>
+                                  <th class="text-end">Output</th>
+                                  <th class="text-end">USD</th>
+                                  <th class="text-end">VND</th>
+                                </tr>
+                              </thead>
+                              <tbody id="cost-by-provider-tbody">
+                                <tr><td colspan="6" class="text-center text-muted py-3">—</td></tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-12 col-lg-4">
+                      <div class="card shadow-none border h-100">
+                        <div class="card-header border-0">
+                          <h3 class="card-title fw-bold">Phân bổ theo nhà cung cấp</h3>
+                        </div>
+                        <div class="card-body">
+                          <canvas id="providerUsageChart" style="min-height: 300px; height: 300px; max-height: 300px; max-width: 100%;"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Update Key -->
+    <div class="modal fade" id="updateKeyModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modal-provider-title">Cấu hình API Key</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="apiKeyForm">
+              <input type="hidden" id="input-provider" />
+              <div class="mb-3">
+                <label class="form-label">API Key</label>
+                <div class="input-group">
+                  <input type="password" class="form-control" id="input-api-key" placeholder="Nhập 1 hoặc nhiều API Key (phân tách bằng dấu phẩy)..." required />
+                  <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+                <div class="form-text small">Có thể nhập nhiều key để quay vòng (phân tách bằng dấu phẩy).</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Base URL (Tùy chọn)</label>
+                <input type="text" class="form-control" id="input-base-url" placeholder="Mặc định của Provider" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Model mặc định (Tùy chọn)</label>
+                <input type="text" class="form-control" id="input-model" placeholder="Ví dụ: gpt-4o, gpt-3.5-turbo (phân tách dấu phẩy)" />
+                <div class="form-text small">Nhập danh sách model phân tách bằng dấu phẩy để sử dụng cho Deep Research.</div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            <button type="button" class="btn btn-primary" id="btn-save-key">Lưu cấu hình</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="/src/bootstrap-page.js"></script>
+  </body>
+</html>

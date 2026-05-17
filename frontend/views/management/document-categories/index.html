@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý công việc · EduAI Hub</title>
+  </head>
+  <body
+    data-page-title="Quản lý công việc"
+    data-breadcrumb='[{"label":"Home","href":"/views/dashboard/index.html"},{"label":"Quản lý"},{"label":"Quản lý công việc"}]'
+  >
+    <div id="page-content" data-page="ioffice-categories">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Quản lý công việc</h3>
+          <div class="card-tools d-flex align-items-center gap-2">
+            <div class="input-group input-group-sm" style="width: 260px">
+              <input class="form-control" data-cat="search" placeholder="Tìm theo tên..." />
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+            </div>
+            <button class="btn btn-sm btn-primary" type="button" data-cat-action="open-create">
+              <i class="bi bi-plus-lg me-1"></i>Thêm
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-striped mb-0">
+            <thead>
+              <tr>
+                <th style="width: 90px">ID</th>
+                <th>Công việc</th>
+                <th>Mô tả</th>
+                <th style="width: 220px">Thuộc</th>
+                <th style="width: 120px">Thứ tự</th>
+                <th style="width: 120px"></th>
+              </tr>
+            </thead>
+            <tbody data-cat="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal fade" id="catUpsertModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" data-cat="modal-title">Thêm công việc</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Tên công việc</label>
+                <input class="form-control" data-cat="modal-name" placeholder="Ví dụ: Thi đua khen thưởng..." />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mô tả</label>
+                <textarea class="form-control" data-cat="modal-desc" rows="3" placeholder="Mô tả ngắn về công việc..."></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Công việc cha</label>
+                <select class="form-select" data-cat="modal-parent"></select>
+              </div>
+              <div class="mb-0">
+                <label class="form-label">Thứ tự</label>
+                <input class="form-control" data-cat="modal-sort" type="number" value="0" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+              <button type="button" class="btn btn-primary" data-cat-action="save">Lưu</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="catDeleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Xác nhận xóa</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              Bạn có chắc muốn xóa công việc <strong data-cat="delete-name"></strong>?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+              <button type="button" class="btn btn-danger" data-cat-action="confirm-delete">Xóa</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/bootstrap-page.js"></script>
+  </body>
+</html>

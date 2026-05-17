@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trang chủ · EduAI Hub</title>
+  </head>
+  <body
+    data-page-title="Trang chủ"
+    data-breadcrumb='[{"label":"Home","href":"/views/dashboard/index.html"},{"label":"Trang chủ"}]'
+  >
+    <div id="page-content" data-page="dashboard">
+      <div class="row g-3">
+        <div class="col-lg-3 col-6">
+          <div class="info-box shadow-sm">
+            <span class="info-box-icon text-bg-primary shadow-sm">
+              <i class="fas fa-file-alt"></i>
+            </span>
+            <div class="info-box-content">
+              <span class="info-box-text">Văn bản mới (iOffice)</span>
+              <span id="home-ioffice-new-count" class="info-box-number">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-6">
+          <div class="info-box shadow-sm">
+            <span class="info-box-icon text-bg-success shadow-sm">
+              <i class="fas fa-check-circle"></i>
+            </span>
+            <div class="info-box-content">
+              <span class="info-box-text">Quyết định đã duyệt</span>
+              <span class="info-box-number">7</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-6">
+          <div class="info-box shadow-sm">
+            <span class="info-box-icon text-bg-warning shadow-sm">
+              <i class="fas fa-book"></i>
+            </span>
+            <div class="info-box-content">
+              <span class="info-box-text">Học liệu mới</span>
+              <span class="info-box-number">5</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-6">
+          <div class="info-box shadow-sm">
+            <span class="info-box-icon text-bg-danger shadow-sm">
+              <i class="fas fa-graduation-cap"></i>
+            </span>
+            <div class="info-box-content">
+              <span class="info-box-text">Phiên học gần đây</span>
+              <span class="info-box-number">3</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Gợi ý AI nổi bật</h3>
+            </div>
+            <div class="card-body">
+              <div class="callout callout-info mb-0">
+                <h5>Nguyên tắc Human-in-the-loop</h5>
+                <p class="mb-0">AI gợi ý → Con người kiểm tra → Con người quyết định → Hệ thống thực thi.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Trạng thái hệ thống</h3>
+            </div>
+            <div class="card-body">
+              <ul class="list-unstyled mb-0">
+                <li>
+                  <i id="status-mariadb-icon" class="fas fa-circle text-secondary me-2"></i>MariaDB
+                  <span id="status-mariadb-meta" class="ms-2 small text-muted"></span>
+                </li>
+                <li>
+                  <i id="status-qdrant-icon" class="fas fa-circle text-secondary me-2"></i>Qdrant
+                  <span id="status-qdrant-meta" class="ms-2 small text-muted"></span>
+                </li>
+                <li>
+                  <i id="status-api-icon" class="fas fa-circle text-secondary me-2"></i>Backend API
+                  <span id="status-api-meta" class="ms-2 small text-muted"></span>
+                </li>
+              </ul>
+              <div id="system-status-updated-at" class="mt-2 small text-muted"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/bootstrap-page.js"></script>
+  </body>
+</html>
