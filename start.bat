@@ -69,7 +69,7 @@ if errorlevel 1 (
 docker compose version
 
 echo.
-echo [4/9] Khoi dong MariaDB va Qdrant...
+echo [4/10] Khoi dong MariaDB va Qdrant...
 docker compose up -d
 if errorlevel 1 (
   echo [LOI] Khong khoi dong duoc Docker Compose.
@@ -79,7 +79,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [5/9] Doi MariaDB san sang va dam bao schema...
+echo [5/10] Doi MariaDB san sang va dam bao schema...
 "%PS%" -NoProfile -ExecutionPolicy Bypass -Command "$ok=$false; for($i=1;$i -le 40;$i++){ $m=(Test-NetConnection 127.0.0.1 -Port 3307 -WarningAction SilentlyContinue).TcpTestSucceeded; if($m){ $ok=$true; break }; Write-Host ('Dang doi MariaDB... lan ' + $i + '/40'); Start-Sleep -Seconds 3 }; if(-not $ok){ exit 1 }"
 if errorlevel 1 (
   echo [LOI] MariaDB chua san sang sau khi cho.
@@ -104,7 +104,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [6/9] Tao moi truong Python neu chua co...
+echo [6/10] Tao moi truong Python neu chua co...
 if not exist "%VENV_DIR%\Scripts\python.exe" (
   python -m venv "%VENV_DIR%"
   if errorlevel 1 (
@@ -115,7 +115,7 @@ if not exist "%VENV_DIR%\Scripts\python.exe" (
 )
 
 echo.
-echo [7/9] Cai dat backend dependencies...
+echo [7/10] Cai dat backend dependencies...
 "%VENV_DIR%\Scripts\python.exe" -m pip install --upgrade pip
 if errorlevel 1 (
   echo [LOI] Khong nang cap duoc pip.
@@ -130,7 +130,16 @@ if errorlevel 1 (
 )
 
 echo.
-echo [8/9] Cai dat frontend dependencies va build giao dien...
+echo [8/10] Dam bao Playwright Chromium cho dong bo iOffice...
+"%VENV_DIR%\Scripts\python.exe" -m playwright install chromium
+if errorlevel 1 (
+  echo [LOI] Khong cai duoc Playwright Chromium.
+  pause
+  exit /b 1
+)
+
+echo.
+echo [9/10] Cai dat frontend dependencies va build giao dien...
 cd /d "%FRONTEND_DIR%"
 call npm install
 if errorlevel 1 (
@@ -146,7 +155,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [9/9] Khoi dong backend/web server...
+echo [10/10] Khoi dong backend/web server...
 cd /d "%BACKEND_DIR%"
 if "%EDUAI_SECRET_KEY%"=="" set "EDUAI_SECRET_KEY=dev-secret"
 set "EDUAI_PORT=%PORT%"
